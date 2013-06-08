@@ -1,0 +1,208 @@
+* Cocoa设计模式
+** MVC
+*** model
++ model可以是mutable也可以是immutable的
++ 使用immutable对象做model有很多好处
+  - 能够通过调用retain来实现copy
+  - 即使不用锁也是线程安全的
+  - 保证了对象经常处于一个稳定的状态
+*** view
++ 不能有直接带有controller reference
++ 不能带有除了superview和subview的其他 view reference
++ 需要对重用性和简易型(ease-of-use)进行一个平衡
++ 负责接收用户事件，但不处理，交给view的delegate--controller处理
+*** controller
++ coordinate between view and model
++ 经常以Manager结尾，并且一般为singleton
++ 应该避免直接引用到别的controller
++ 一个经常犯的错误就是允许许多对象直接引用app delegate
++ 最好的access全局变量的方法是使用singleton
+#+BEGIN_SRC C
+// Do not do this
+MyAppDelegate *appDelegate = (MyAppDelegate*)[[UIApplication sharedApplication] delegate];
+Something *something = [appDelegate something];
+// Do not do this
+#+END_SRC
+** Delegate & DataSource
++ delegate负责appearance&behavior，datasource负责显示的data
++ delegate一般设为weak，当然也有特例。
+#+BEGIN_EXAMPLE
+NSURLConnection retain its delegate, 仅在这个connection正在loading的时候
+在loading完成之后，NSURLConnection release delegate，防止retain loop
+#+END_EXAMPLE
++ delegate方法同时也是notification的接收方法，是很普遍的。
+#+BEGIN_EXAMPLE
+UIApplication 调用它的delegate方法 applicationWilTerminate:
+它也会post一个notification UIApplicationWillTerminateNotification
+#+END_EXAMPLE
++ delegate是一种strategy pattern
+** Command Pattern
++ 把message请求封装成一个对象。
++ Cocoa的cammand pattern是target-action和NSInvocation。
+*** Target-Action
++ 适用于UIControl。 =addTarget:action:forControlEvents:=
++ target:发送消息到这个object
++ UIControl的action selector签名必须为:
+  - =- (void)action;=
+  - =- (void)action:(id)sender;=
+  - =- (void)action:(id)sender forEvent:(UIEvent*)event;=
++ UIControl能够如下调用这个action:
+  =[target performSelector:action withObject:self withObject:event];=
++ target-action和delegate相似，区别在于target-action的selector是可以配置的，而delegate的selector是被协议定义好的。
++ 编译器无法决定这个target是否实现了一个给定的action，但能够通过打开编译器属性来产生warning(Undeclared Selector warning)。编译属性为GCC_WARN_UNDECLARED_SELECTOR, -Wundeclared-selector。
++ 如果只发送一个action给target对象，则采用target-action；如果发送多个action，则采用delegate。
+*** 使用签名以及Invocations
+**** =NSInvocation= 把target、selector、method signature和所有的参数打包进一个object，用作之后时间的调用
+**** =IMP(a method implementation)= 是一个C函数的函数指针，它的签名为:
+=id function(id self, SEL _cmd, ...)=
+**** 虽然IMP建议每个objc的方法返回一个id，但是显然很多objc方法可能会返回其他类型例如int或者float。事实上的返回类型是由消息签名定义的，并不是IMP自己定义的。
+**** =selector= 只是一个名字，就像 =initWithByters:length:encoding:= 生成的。 =selector= 并指定于任何一个class、任何返回类型或任何参数类型。
+**** NSInvocation包含method signature(NSMethodSignature)，封装了返回类型和方法的参数类型。
+#+BEGIN_SRC C
+// signature for [NSString initWithUTF8String:]
+NSMethodSignature *sig = [NSMethodSignature signatureWithObjCTypes:"@@:*"];
+#+END_SRC
++ 第一个@表示return值为一个id
++ 第二个@表示一个SEL
++ 第三个:表示这个方法有一个参数
++ 第四个*表示第一个参数是一个character string(char*)
++ 可以使用 =@encode(type)= 去获取代表这个类型的string，例如 =@encode(id)= 就是 =@=。
+**** 应该尽可能避免调用 =signatureWithObjcTypes:=
+#+BEGIN_SRC C
+SEL initSEL = @selector(init);
+SEL allocSEL = @selector(alloc);
+NSMethodSignature *initSig, *allocSig;
+// instance method signature from instance
+initSig = [@"String" methodSignatureForSelector:initSEL];
+// instance method signature from class
+initSig = [NSString instanceMethodSignatureForSelector:initSEL];
+// class method signature from class
+allocSEL = [NSStrign methodSignatureForSelector:allocSEL];
+#+END_SRC
+**** 构建一个NSInvocation。
+#+BEGIN_SRC C
+// create an invocation of the message [set addObject:stuff]
+NSMutableSet *set = [NSMutableSet set];
+NSString *stuff = @"Stuff";
+SEL selector = @selector(addObject:);
+NSMethodSignature *sig = [set methodSignatureForSelector:selector];
+// signature method
+NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:sig];
+// target
+[invocation setTarget:set];
+// selector
+[invocation setSelector:selector];
+// param，第一个参数位于index=2，index0是target(self), index1是selector(_cmd)
+// 传递param是传param的地址
+[invocation setArgument:&stuff atIndex:2];
+[invocation invoke];
+#+END_SRC
+**** invocation比直接pass一个message慢了100多倍。建立invocation的许多时间多花在 =methodSignatureForSelector:= ，所以对此进行cache可以有效地提高效率。
+**** invocation默认不retain其中的object，它也不会复制C string的参数。
++ 为了存储invocation从而之后调用，应该调用invocation的 =retainArgument= ，它会retain所有的object参数并且复制所有的C string参数。
++ 当invocation被release，它release它的object，并且free C strings。
++ invocation不提供除objc object和C string之外的类型的内存管理，所以如果有raw pointers传给一个invocation，必须自己惯例内存。
++ 使用 =[NSTimer timeWithTimeInterval:invocation:repeats:]= 会自动调用 =retainArguments= 。
+*** Trampolines(蹦床)
++ Trampoline从一个object发送消息至另一个object，一般使用 =forwardInvocation:= 去处理消息实体，如果一个object不能响应一个selector，在objc抛出一个异常之前，它会新建一个NSInvocation并且传递给这个object的 =forwardInvocation:= 方法。能够使用这个方法传递任何消息。在功能上类似于 =NSNotification= ,但是要更为简单，在有很多observers的时候要更快。
++ 下面的例子中，=RNObserverManager= 是一个trampoline。任何发给trampoline的消息会去注册一个响应那个selector的observer。
+#+BEGIN_SRC C
+#import <objc/runtime.h>
+@interface RNObserverManager : NSObject
+- (id)initWithProtocol:(Protocol*)protocol observers:(NSSet*)observers;
+- (void)addObserver:(id)observer;
+- (void)removeObserver:(id)observer;
+@end
+@interface RNObserverManager()
+@property (nonatomic, readonly, strong) NSMutableSet *observers;
+@property (nonatomic, readonly, strong) Protocol *protocol;
+@end
+@implementation RNObserverManager
+@synthesize observers = observers_;
+@synthesize protocol = protocol_;
+- (id)initWithProtocol:(Protocol *)protocol observers:(NSSet*)observers {
+  if ((self == [super init])) {
+    protocol_ = protocol;
+    observers_ = [NSMutableSet setWithSet: Observers];
+  }
+  return self;
+}
+- (void)addObserver:(id)observer {
+  NSAssert([observer conformsToProtocol:self.protocol], @"Observer must confrom to protocol.");
+  [self.observers addObject:observer];
+}
+- (void)removeObserver:(id)observer {
+  [self.observers removeObject:observer];
+}
+#+END_SRC
++ 现在需要override =methodSignatureForSeletor:= 。objc 消息传递机制会对known selectors新建一个NSInvocation。override它从而返回定义在 =protocol= 中的方法签名，使用 =protocol_getMethodDescription= 。必须从protocol中获取到方法签名而不是observers中，这是因为这个方法是可选的，observer可能没有实现它。
+#+BEGIN_SRC C
+- (NSMethodSignature*)methodSignatureForSelector:(SEL)sel
+{
+  // check the trampoline itself
+  NSMethodSignature *result = [super methodSignatureForSelector:sel];
+  if (result) {
+    return result;
+  }
+  // Look for a required method
+  // 第三个参数表示是否@require
+  // 第四个参数表示isInstanceVals
+  struct objc_method_description desc = protocol_getMethodDescription(self.protocol, sel, YES, YES);
+  if (desc.name == NULL) {
+  // Couldn't find it. Maybe it's optional
+    desc = protocol_getMethodDescription(self.protocol, sel, NO, YES);
+  }
+  if (desc.name == NULL) {
+    [self doesNotRecognizeSelector: sel];
+    return nil;
+  }
+  return [NSMethodSignature signatureWithObjcTypes:desc.types];
+}
+#+END_SRC
++ 最后，需要override =forwardInvocation:= 让observer执行这个selector
+#+BEGIN_SRC C
+- (void)forwardInvocation:(NSInvocation*)invocation {
+  SEL selector = [invocation selector];
+  for (id responder in self.observers) {
+    if ([responder respondsToSelector:selector]) {
+    [invocation setTarget:responder];
+    [invocation invoke];
+    }
+  }
+}
+#+END_SRC
++ 如何使用这个trampoline。先建立一个trampoline instance，设置好observers，然后在这个instance调用消息方法。这个instance的type应该设置为id，以免产生编译器warning。
+#+BEGIN_SRC C
+@protocol MyProtocol <NSObject>
+- (void)doSomething;
+@end
+...
+id observerManager = [[RNObserverManager alloc] initWithProtocol:@protocol(MyProtocol) observers:observers];
+[observerManager doSomething];
+#+END_SRC
++ 实际例子：建立一个proxy trampoline，把所有消息都转发到main thread上。
+#+BEGIN_SRC C
+@interface RNMainThreadTrampoline : NSObject
+@property (nonatomic, readwrite, strong) id target;
+- (id)initWithTarget:(id)aTarget;
+@end
+@implementation RNMainThreadTrampoline
+@synthesize target = target_;
+- (id)initWithTarget:(id)aTarget {
+  if ((self == [super init])) {
+    target_ = aTarget;
+  }
+  return self;
+}
+- (NSMethodSignature *)methodSignatureForSelector:(SEL)sel
+{
+  return [self.target methodSignatureForSelector:sel];
+}
+- (void)forwardInvocation:(NSInvocation*)invocation {
+  [invocation setTarget:self.target];
+  [invocation retainArguments];
+  [invocation performSelectorOnMainThread:@selector(invoke) withObject:nil waitUntilDone:NO];
+}
+@end
+#+END_SRC
++ =forwardInvocation:= 能够透明地合并消息、增加log、传递消息至别的机器、等等。
