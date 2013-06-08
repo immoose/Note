@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
 <meta name="title" content="iostpl"/>
 <meta name="generator" content="Org-mode"/>
-<meta name="generated" content="2013-06-09 00:09:34 CST"/>
+<meta name="generated" content="2013-06-09 00:37:54 CST"/>
 <meta name="author" content="Yifeng Li"/>
 <meta name="description" content=""/>
 <meta name="keywords" content=""/>
@@ -1267,7 +1267,7 @@ allocSEL = [NSStrign methodSignatureForSelector:allocSEL];
 <div class="outline-text-4" id="text-4-3-3">
 
 <ul>
-<li>Trampoline从一个object发送消息至另一个object，一般使用 <code>forwardInvocation:</code> 去处理消息实体，如果一个object不能响应一个selector，在objc抛出一个异常之前，它会新建一个NSInvocation并且传递给这个object的 <code>forwardInvocation:</code> 方法。能够使用这个方法传递任何消息。
+<li>Trampoline从一个object发送消息至另一个object，一般使用 <code>forwardInvocation:</code> 去处理消息实体，如果一个object不能响应一个selector，在objc抛出一个异常之前，它会新建一个NSInvocation并且传递给这个object的 <code>forwardInvocation:</code> 方法。能够使用这个方法传递任何消息。在功能上类似于 <code>NSNotification</code> ,但是要更为简单，在有很多observers的时候要更快。
 </li>
 <li>下面的例子中，=RNObserverManager= 是一个trampoline。任何发给trampoline的消息会去注册一个响应那个selector的observer。
 </li>
@@ -1321,7 +1321,9 @@ allocSEL = [NSStrign methodSignatureForSelector:allocSEL];
     <span style="color: #a020f0;">return</span> result;
   }
   <span style="color: #b22222;">// </span><span style="color: #b22222;">Look for a required method</span>
-  <span style="color: #a020f0;">struct</span> <span style="color: #228b22;">objc_method_description</span> <span style="color: #a0522d;">desc</span> = protocol_getMethodDescription(self.protol, sel, YES, YES);
+  <span style="color: #b22222;">// </span><span style="color: #b22222;">&#31532;&#19977;&#20010;&#21442;&#25968;&#34920;&#31034;&#26159;&#21542;@require</span>
+  <span style="color: #b22222;">// </span><span style="color: #b22222;">&#31532;&#22235;&#20010;&#21442;&#25968;&#34920;&#31034;isInstanceVals</span>
+  <span style="color: #a020f0;">struct</span> <span style="color: #228b22;">objc_method_description</span> <span style="color: #a0522d;">desc</span> = protocol_getMethodDescription(self.protocol, sel, YES, YES);
   <span style="color: #a020f0;">if</span> (desc.name == <span style="color: #008b8b;">NULL</span>) {
   <span style="color: #b22222;">// </span><span style="color: #b22222;">Couldn't find it. Maybe it's optional</span>
     desc = protocol_getMethodDescription(self.protocol, sel, NO, YES);
@@ -1334,6 +1336,79 @@ allocSEL = [NSStrign methodSignatureForSelector:allocSEL];
 }
 </pre>
 
+<ul>
+<li>最后，需要override <code>forwardInvocation:</code> 让observer执行这个selector
+</li>
+</ul>
+
+
+
+
+<pre class="src src-C">- (<span style="color: #228b22;">void</span>)forwardInvocation:(<span style="color: #228b22;">NSInvocation</span>*)invocation {
+  <span style="color: #228b22;">SEL</span> <span style="color: #a0522d;">selector</span> = [invocation selector];
+  <span style="color: #a020f0;">for</span> (id responder <span style="color: #228b22;">in</span> <span style="color: #a0522d;">self</span>.observers) {
+    <span style="color: #a020f0;">if</span> ([responder respondsToSelector:selector]) {
+    [invocation setTarget:responder];
+    [invocation invoke];
+    }
+  }
+}
+</pre>
+
+<ul>
+<li>如何使用这个trampoline。先建立一个trampoline instance，设置好observers，然后在这个instance调用消息方法。这个instance的type应该设置为id，以免产生编译器warning。
+</li>
+</ul>
+
+
+
+
+<pre class="src src-C">@protocol MyProtocol &lt;NSObject&gt;
+- (<span style="color: #228b22;">void</span>)doSomething;
+@end
+...
+id observerManager = [[RNObserverManager alloc] initWithProtocol:@protocol(MyProtocol) observers:observers];
+[observerManager doSomething];
+</pre>
+
+<ul>
+<li>实际例子：建立一个proxy trampoline，把所有消息都转发到main thread上。
+</li>
+</ul>
+
+
+
+
+<pre class="src src-C">@interface RNMainThreadTrampoline : NSObject
+@property (nonatomic, readwrite, strong) <span style="color: #228b22;">id</span> <span style="color: #a0522d;">target</span>;
+- (<span style="color: #228b22;">id</span>)initWithTarget:(<span style="color: #228b22;">id</span>)aTarget;
+@end
+@implementation RNMainThreadTrampoline
+@synthesize target = target_;
+- (<span style="color: #228b22;">id</span>)initWithTarget:(<span style="color: #228b22;">id</span>)aTarget {
+  <span style="color: #a020f0;">if</span> ((self == [super init])) {
+    target_ = aTarget;
+  }
+  <span style="color: #a020f0;">return</span> self;
+}
+- (<span style="color: #228b22;">NSMethodSignature</span> *)methodSignatureForSelector:(<span style="color: #228b22;">SEL</span>)sel
+{
+  <span style="color: #a020f0;">return</span> [self.target methodSignatureForSelector:sel];
+}
+- (<span style="color: #228b22;">void</span>)forwardInvocation:(<span style="color: #228b22;">NSInvocation</span>*)invocation {
+  [invocation setTarget:self.target];
+  [invocation retainArguments];
+  [invocation performSelectorOnMainThread:@selector(invoke) withObject:nil waitUntilDone:NO];
+}
+@end
+</pre>
+
+<ul>
+<li><code>forwardInvocation:</code> 能够透明地合并消息、增加log、传递消息至别的机器、等等。
+</li>
+</ul>
+
+
 </div>
 </div>
 </div>
@@ -1341,7 +1416,7 @@ allocSEL = [NSStrign methodSignatureForSelector:allocSEL];
 </div>
 
 <div id="postamble">
-<p class="date">Date: 2013-06-09 00:09:34 CST</p>
+<p class="date">Date: 2013-06-09 00:37:54 CST</p>
 <p class="author">Author: Yifeng Li</p>
 <p class="creator">Org version 7.8.11 with Emacs version 24</p>
 <a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>

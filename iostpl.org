@@ -441,6 +441,7 @@ NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:sig];
 ...
 id observerManager = [[RNObserverManager alloc] initWithProtocol:@protocol(MyProtocol) observers:observers];
 [observerManager doSomething];
+#+END_SRC
 + 实际例子：建立一个proxy trampoline，把所有消息都转发到main thread上。
 #+BEGIN_SRC C
 @interface RNMainThreadTrampoline : NSObject
