@@ -1,0 +1,1164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+               "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>iostpl</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+<meta name="title" content="iostpl"/>
+<meta name="generator" content="Org-mode"/>
+<meta name="generated" content="2013-06-08 10:55:22 CST"/>
+<meta name="author" content="Yifeng Li"/>
+<meta name="description" content=""/>
+<meta name="keywords" content=""/>
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  html { font-family: Times, serif; font-size: 12pt; }
+  .title  { text-align: center; }
+  .todo   { color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #add8e6; font-weight:normal }
+  .target { }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  {margin-left:auto; margin-right:0px;  text-align:right;}
+  .left   {margin-left:0px;  margin-right:auto; text-align:left;}
+  .center {margin-left:auto; margin-right:auto; text-align:center;}
+  p.verse { margin-left: 3% }
+  pre {
+	border: 1pt solid #AEBDCC;
+	background-color: #F3F5F7;
+	padding: 5pt;
+	font-family: courier, monospace;
+        font-size: 90%;
+        overflow:auto;
+  }
+  table { border-collapse: collapse; }
+  td, th { vertical-align: top;  }
+  th.right  { text-align:center;  }
+  th.left   { text-align:center;   }
+  th.center { text-align:center; }
+  td.right  { text-align:right;  }
+  td.left   { text-align:left;   }
+  td.center { text-align:center; }
+  dt { font-weight: bold; }
+  div.figure { padding: 0.5em; }
+  div.figure p { text-align: center; }
+  div.inlinetask {
+    padding:10px;
+    border:2px solid gray;
+    margin:10px;
+    background: #ffffcc;
+  }
+  textarea { overflow-x: auto; }
+  .linenr { font-size:smaller }
+  .code-highlighted {background-color:#ffff00;}
+  .org-info-js_info-navigation { border-style:none; }
+  #org-info-js_console-label { font-size:10px; font-weight:bold;
+                               white-space:nowrap; }
+  .org-info-js_search-highlight {background-color:#ffff00; color:#000000;
+                                 font-weight:bold; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+
+</head>
+<body>
+
+<div id="preamble">
+
+</div>
+
+<div id="content">
+<h1 class="title">iostpl</h1>
+
+
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1 ios5新功能</a>
+<ul>
+<li><a href="#sec-1-1">1.1 iCloud</a></li>
+<li><a href="#sec-1-2">1.2 LLVM3.0编译器</a></li>
+<li><a href="#sec-1-3">1.3 ARC</a></li>
+<li><a href="#sec-1-4">1.4 Storyboard</a></li>
+<li><a href="#sec-1-5">1.5 UIKit Customization</a></li>
+<li><a href="#sec-1-6">1.6 Twitter等社交框架</a></li>
+<li><a href="#sec-1-7">1.7 其它</a></li>
+</ul>
+</li>
+<li><a href="#sec-2">2 Xcode4</a>
+<ul>
+<li><a href="#sec-2-1">2.1 UI</a></li>
+<li><a href="#sec-2-2">2.2 LLVM3.0</a></li>
+<li><a href="#sec-2-3">2.3 Schemes</a>
+<ul>
+<li><a href="#sec-2-3-1">2.3.1 分类</a></li>
+<li><a href="#sec-2-3-2">2.3.2 分享scheme</a></li>
+</ul>
+</li>
+<li><a href="#sec-2-4">2.4 build配置</a></li>
+<li><a href="#sec-2-5">2.5 Organizer</a>
+<ul>
+<li><a href="#sec-2-5-1">2.5.1 Automatic Device Provisioning</a></li>
+<li><a href="#sec-2-5-2">2.5.2 console logs</a></li>
+<li><a href="#sec-2-5-3">2.5.3 sandbox data</a></li>
+</ul></li>
+</ul>
+</li>
+<li><a href="#sec-3">3 OBJC最佳实践</a>
+<ul>
+<li><a href="#sec-3-1">3.1 命名规范</a></li>
+<li><a href="#sec-3-2">3.2 ARC</a>
+<ul>
+<li><a href="#sec-3-2-1">3.2.1 ARC与垃圾回收不同</a></li>
+<li><a href="#sec-3-2-2">3.2.2 ARC最佳实践</a></li>
+<li><a href="#sec-3-2-3">3.2.3 ARC规范</a></li>
+</ul>
+</li>
+<li><a href="#sec-3-3">3.3 Properties</a>
+<ul>
+<li><a href="#sec-3-3-1">3.3.1 Property Attribute</a></li>
+<li><a href="#sec-3-3-2">3.3.2 property实践</a></li>
+</ul>
+</li>
+<li><a href="#sec-3-4">3.4 Accessor</a>
+<ul>
+<li><a href="#sec-3-4-1">3.4.1 使用accessor的原因</a></li>
+<li><a href="#sec-3-4-2">3.4.2 不应该使用accessor的地方</a></li>
+</ul>
+</li>
+<li><a href="#sec-3-5">3.5 Categories And Extensions</a>
+<ul>
+<li><a href="#sec-3-5-1">3.5.1 Category</a></li>
+<li><a href="#sec-3-5-2">3.5.2 享元(flyweight)方法使用category data</a></li>
+<li><a href="#sec-3-5-3">3.5.3 Class Extension</a></li>
+</ul>
+</li>
+<li><a href="#sec-3-6">3.6 正式和非正式协议</a>
+<ul>
+<li><a href="#sec-3-6-1">3.6.1 非正式协议</a></li>
+<li><a href="#sec-3-6-2">3.6.2 正式协议Protocol</a></li>
+</ul></li>
+</ul>
+</li>
+<li><a href="#sec-4">4 Cocoa设计模式</a>
+<ul>
+<li><a href="#sec-4-1">4.1 MVC</a>
+<ul>
+<li><a href="#sec-4-1-1">4.1.1 model</a></li>
+<li><a href="#sec-4-1-2">4.1.2 view</a></li>
+<li><a href="#sec-4-1-3">4.1.3 controller</a></li>
+</ul>
+</li>
+<li><a href="#sec-4-2">4.2 Delegate &amp; DataSource</a></li>
+<li><a href="#sec-4-3">4.3 Command Pattern</a>
+<ul>
+<li><a href="#sec-4-3-1">4.3.1 Target-Action</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> ios5新功能</h2>
+<div class="outline-text-2" id="text-1">
+
+
+</div>
+
+<div id="outline-container-1-1" class="outline-3">
+<h3 id="sec-1-1"><span class="section-number-3">1.1</span> iCloud</h3>
+<div class="outline-text-3" id="text-1-1">
+
+<ul>
+<li>支持键值存储、冲突处理
+</li>
+<li>UIDocument/UIManagedDocument/NSFileManager
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-1-2" class="outline-3">
+<h3 id="sec-1-2"><span class="section-number-3">1.2</span> LLVM3.0编译器</h3>
+<div class="outline-text-3" id="text-1-2">
+
+</div>
+
+</div>
+
+<div id="outline-container-1-3" class="outline-3">
+<h3 id="sec-1-3"><span class="section-number-3">1.3</span> ARC</h3>
+<div class="outline-text-3" id="text-1-3">
+
+<ul>
+<li>最小支持IOS4
+</li>
+<li>是编译器LLVM特性
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-1-4" class="outline-3">
+<h3 id="sec-1-4"><span class="section-number-3">1.4</span> Storyboard</h3>
+<div class="outline-text-3" id="text-1-4">
+
+<ul>
+<li>是IOS5特性
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-1-5" class="outline-3">
+<h3 id="sec-1-5"><span class="section-number-3">1.5</span> UIKit Customization</h3>
+<div class="outline-text-3" id="text-1-5">
+
+<ul>
+<li>UIAppearance protocol
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-1-6" class="outline-3">
+<h3 id="sec-1-6"><span class="section-number-3">1.6</span> Twitter等社交框架</h3>
+<div class="outline-text-3" id="text-1-6">
+
+<ul>
+<li>via iOS
+</li>
+<li>Twitter.Framework
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-1-7" class="outline-3">
+<h3 id="sec-1-7"><span class="section-number-3">1.7</span> 其它</h3>
+<div class="outline-text-3" id="text-1-7">
+
+<ul>
+<li>Newsstand Kit
+</li>
+<li>CIImage/CIFilter: 图片处理
+</li>
+<li>CIDetector: 模式识别
+</li>
+<li>UIStepper(new control)/UIPageViewController(curl)
+</li>
+</ul>
+
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> Xcode4</h2>
+<div class="outline-text-2" id="text-2">
+
+<ul>
+<li>默认编译器: LLVM3.0
+</li>
+<li>front end: Clang 更好更快的编译
+</li>
+</ul>
+
+
+</div>
+
+<div id="outline-container-2-1" class="outline-3">
+<h3 id="sec-2-1"><span class="section-number-3">2.1</span> UI</h3>
+<div class="outline-text-3" id="text-2-1">
+
+<ul>
+<li>快捷键
+<dl>
+<dt>Cmd-Shift-2</dt><dd>Organizer
+</dd>
+<dt>F6</dt><dd>step over
+</dd>
+<dt>F7</dt><dd>step into
+</dd>
+<dt>F8</dt><dd>step out
+</dd>
+<dt>Cmd-Opt-J</dt><dd>源文件filter
+</dd>
+</dl>
+
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-2-2" class="outline-3">
+<h3 id="sec-2-2"><span class="section-number-3">2.2</span> LLVM3.0</h3>
+<div class="outline-text-3" id="text-2-2">
+
+<ul>
+<li>编译器前端提供一个即时的解析以及对预定义宏的处理。
+</li>
+<li>后端生成二进制代码并且进行优化。
+</li>
+<li>GCC是一个后端编译器
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-2-3" class="outline-3">
+<h3 id="sec-2-3"><span class="section-number-3">2.3</span> Schemes</h3>
+<div class="outline-text-3" id="text-2-3">
+
+<p>build产品的一系列指令
+</p>
+</div>
+
+<div id="outline-container-2-3-1" class="outline-4">
+<h4 id="sec-2-3-1"><span class="section-number-4">2.3.1</span> 分类</h4>
+<div class="outline-text-4" id="text-2-3-1">
+
+<dl>
+<dt>Run</dt><dd>
+</dd>
+<dt>Test</dt><dd>
+</dd>
+<dt>Profile</dt><dd>Instruments
+</dd>
+<dt>Analyze</dt><dd>Clang static analyzer 提示潜在的内存泄露
+</dd>
+<dt>Archive</dt><dd>打包成xcarchive(ipa)文件
+</dd>
+</dl>
+
+</div>
+
+</div>
+
+<div id="outline-container-2-3-2" class="outline-4">
+<h4 id="sec-2-3-2"><span class="section-number-4">2.3.2</span> 分享scheme</h4>
+<div class="outline-text-4" id="text-2-3-2">
+
+<ul>
+<li>scheme保存在xcuserdata文件夹下
+</li>
+<li>选中sdhared后，scheme会复制到xcshareddata文件夹
+</li>
+</ul>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-2-4" class="outline-3">
+<h3 id="sec-2-4"><span class="section-number-3">2.4</span> build配置</h3>
+<div class="outline-text-3" id="text-2-4">
+
+<dl>
+<dt>新建</dt><dd>File-&gt;New File-&gt;Other-&gt;Configuration Setting File
+</dd>
+<dt>共享</dt><dd>build config里可以包含另一个build config，采用'#include "share.xcconfig"'
+</dd>
+<dt>xcconfig添加行</dt><dd>project-&gt;build settings-&gt;选择basic和levels,Cmd-C进行复制
+</dd>
+<dt>采用xcconfig</dt><dd>project-&gt;info-&gt;configuration
+</dd>
+</dl>
+
+</div>
+
+</div>
+
+<div id="outline-container-2-5" class="outline-3">
+<h3 id="sec-2-5"><span class="section-number-3">2.5</span> Organizer</h3>
+<div class="outline-text-3" id="text-2-5">
+
+
+</div>
+
+<div id="outline-container-2-5-1" class="outline-4">
+<h4 id="sec-2-5-1"><span class="section-number-4">2.5.1</span> Automatic Device Provisioning</h4>
+<div class="outline-text-4" id="text-2-5-1">
+
+<p>任何带有Push Notification, Game Center, iCloud, IAP都不能采用*作为appid的，不能使用
+</p></div>
+
+</div>
+
+<div id="outline-container-2-5-2" class="outline-4">
+<h4 id="sec-2-5-2"><span class="section-number-4">2.5.2</span> console logs</h4>
+<div class="outline-text-4" id="text-2-5-2">
+
+</div>
+
+</div>
+
+<div id="outline-container-2-5-3" class="outline-4">
+<h4 id="sec-2-5-3"><span class="section-number-4">2.5.3</span> sandbox data</h4>
+<div class="outline-text-4" id="text-2-5-3">
+
+<p>可以往sandbox进行添加删除工作
+</p>
+</div>
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> OBJC最佳实践</h2>
+<div class="outline-text-2" id="text-3">
+
+
+</div>
+
+<div id="outline-container-3-1" class="outline-3">
+<h3 id="sec-3-1"><span class="section-number-3">3.1</span> 命名规范</h3>
+<div class="outline-text-3" id="text-3-1">
+
+<ul>
+<li>静态变量以s开头、全局变量以g开头
+</li>
+</ul>
+
+<p><code>static MYThing *sSharedInstance;</code>
+</p><ul>
+<li>Core Foundation中，常量以k开头
+</li>
+</ul>
+
+<p><code>static const NSUInteger kMaxNumberOfRows = 3;</code>
+</p><ul>
+<li>方法的参数以a/an/the开头
+</li>
+<li>instance varibles (ivars) 以m开头 或者 以结尾，避免与apple预定义的产生冲突
+</li>
+<li>类的第一个字母都要大写
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-3-2" class="outline-3">
+<h3 id="sec-3-2"><span class="section-number-3">3.2</span> ARC</h3>
+<div class="outline-text-3" id="text-3-2">
+
+
+</div>
+
+<div id="outline-container-3-2-1" class="outline-4">
+<h4 id="sec-3-2-1"><span class="section-number-4">3.2.1</span> ARC与垃圾回收不同</h4>
+<div class="outline-text-4" id="text-3-2-1">
+
+<ul>
+<li>ARC内存回收进行在 <b>编译期</b> 而不在运行期，在编译期间注入retain和release，所以要比垃圾回收速度性能要快很多
+</li>
+<li>ARC不能处理引用循环，但是垃圾回收可以
+</li>
+</ul>
+
+
+
+
+<pre class="example">External Object -&gt; Object A &lt;-&gt; Object B
+如果External Object到Object A的链接断开，
+在Snow Leopard垃圾回收之中，Object A &amp; B都会摧毁，因为它们已经被程序遗弃；
+在ARC中，Object A &amp; B不会被销毁，因为它们互相有一个大于零的retain count。
+</pre>
+
+<ul>
+<li>ARC中也必须保持对strong关系的追踪，以防引用循环
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-3-2-2" class="outline-4">
+<h4 id="sec-3-2-2"><span class="section-number-4">3.2.2</span> ARC最佳实践</h4>
+<div class="outline-text-4" id="text-3-2-2">
+
+<ul>
+<li>delegate应该总是weak
+</li>
+<li>可以进行dealloc操作，例如移除KVO， <b>不能调用</b> <code>[super dealloc]</code>
+</li>
+<li>定义一个 <code>copy****</code> 方法，ARC会 +1 retain count。同样，也会在相应地方加入一个 <code>release</code> 。
+</li>
+</ul>
+
+
+
+
+<pre class="example">可能违背于Cocoa命名规范
+例如一个property名为copyRight，ARC看到它的accessor方法以copy开头，所以会将retain count +1
+如果getter和调用的代码都用ARC编译的，会稍微不那么效率点，先retain count +1 再 release
+可能会碰到的问题：
+如果calling code用ARC编译，而copyRight不是，则ARC会注入一个release, 导致程序crash
+如果copyRight使用ARC编译，calling code不是，则会少一个release，导致内存泄露
+解决方案：
++ 重命名为copyright
++ 在方法声明时候加上NS_RETURNS_RETAINED或NS_RETURNS_NOT_RETAINED
+</pre>
+
+</div>
+
+</div>
+
+<div id="outline-container-3-2-3" class="outline-4">
+<h4 id="sec-3-2-3"><span class="section-number-4">3.2.3</span> ARC规范</h4>
+<div class="outline-text-4" id="text-3-2-3">
+
+<ul>
+<li>不要调用retain、release和autorelease，也不要重写这些方法。
+</li>
+<li>不要在C struct中定义对象指针。如果一定要再C struct中存储对象，需要将该对象强制转换成void*
+</li>
+<li>不要在id和void*之间强制转换，除非使用bridging cast。
+</li>
+<li>不要使用NSAutoreleasePool。@autoreleasepool比NSAutoreleasePool快了超过20倍。
+</li>
+</ul>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-3-3" class="outline-3">
+<h3 id="sec-3-3"><span class="section-number-3">3.3</span> Properties</h3>
+<div class="outline-text-3" id="text-3-3">
+
+<ul>
+<li>synthesize能够自动生成ivar
+</li>
+<li>在category中不能synthesize一个property
+</li>
+<li>建议全部使用property并且synthesize每一个property
+</li>
+<li>如下代码
+</li>
+</ul>
+
+
+
+
+<pre class="src src-C">@interface MyClass : NSObject
+@property (readonly, strong) <span style="color: #a57705;">NSString</span> *<span style="color: #a57705;">readonlyString</span>;
+@end
+
+@interface MyClass()
+@property (readwrite, strong) <span style="color: #a57705;">NSString</span> *<span style="color: #a57705;">readonlyString</span>;
+@end
+@implementation MyClass
+@synthesize readonlyString = readonlyString_
+@end
+</pre>
+
+<p>
+<code>readonlyString</code> 在class extension中重定义成readwrite，允许你建一个私立的setter。
+</p>
+</div>
+
+<div id="outline-container-3-3-1" class="outline-4">
+<h4 id="sec-3-3-1"><span class="section-number-4">3.3.1</span> Property Attribute</h4>
+<div class="outline-text-4" id="text-3-3-1">
+
+<ul>
+<li id="sec-3-3-1-1">Atomic &ndash; nonatomic.<br/>
+<ul>
+<li>没有 <code>atomic</code> 属性, nonatomic非原子性，默认即为atomic。
+</li>
+<li>如果将property设为 <code>atomic=，它的accessor是线程安全的，但是array的 =objectAtIndex</code> 并不是线程安全的，需要写如下code
+</li>
+</ul>
+
+
+
+
+<pre class="src src-C">[_propertyLock lock];
+<span style="color: #a57705;">id</span> <span style="color: #a57705;">result</span> = [[value retain] autorelease];
+[_propertyLock unlock];
+<span style="color: #728a05;">return</span> result;
+<span style="color: #81908f; font-style: italic;">// </span><span style="color: #708183; font-style: italic;">retain/autorelase&#38450;&#27490;&#20854;&#20182;&#32447;&#31243;&#30340;caller&#22312;&#36825;&#20010;accessor&#36816;&#34892;&#20013;release&#20102;&#36825;&#20010;&#23545;&#35937;</span>
+</pre>
+
+<ul>
+<li>ARC对 <code>atomic</code> 有着很好的性能提高
+</li>
+</ul>
+
+</li>
+</ul>
+<ul>
+<li id="sec-3-3-1-2">Writability<br/>
+<ul>
+<li>readwrite
+</li>
+<li>readonly
+</li>
+</ul>
+
+</li>
+</ul>
+<ul>
+<li id="sec-3-3-1-3">Setter语义<br/>
+<ul>
+<li>copy ： 对于immutable类应该使用copy。由于mutable类是immutable类的子类，这样可以防止例如将NSString赋值给NSMutableString, 从而造成immutable类改变的情况出现。
+</li>
+<li>weak
+</li>
+<li>strong
+</li>
+</ul>
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-3-3-2" class="outline-4">
+<h4 id="sec-3-3-2"><span class="section-number-4">3.3.2</span> property实践</h4>
+<div class="outline-text-4" id="text-3-3-2">
+
+<ul>
+<li>getter不应该有任何外部的副作用，可以有内部的副作用如caching。
+</li>
+<li>如下能够使private ivar脱离public header。
+</li>
+</ul>
+
+
+
+
+<pre class="src src-C">@implementation Something {
+    <span style="color: #a57705;">NSString</span> *<span style="color: #a57705;">name</span>;
+    __weak <span style="color: #a57705;">NSString</span> *<span style="color: #a57705;">weakName</span>;     <span style="color: #81908f; font-style: italic;">// </span><span style="color: #708183; font-style: italic;">default strong; weak ivar</span>
+}
+</pre>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-3-4" class="outline-3">
+<h3 id="sec-3-4"><span class="section-number-3">3.4</span> Accessor</h3>
+<div class="outline-text-3" id="text-3-4">
+
+
+</div>
+
+<div id="outline-container-3-4-1" class="outline-4">
+<h4 id="sec-3-4-1"><span class="section-number-4">3.4.1</span> 使用accessor的原因</h4>
+<div class="outline-text-4" id="text-3-4-1">
+
+<dl>
+<dt>KVO</dt><dd>property能够被observed。如果不使用accessor，每次都需要自己调用 <code>willChangeValueForKey:</code> 和 <code>didChangeValueForKey:</code> ，而使用accessor会自动调用这些观察方法。
+</dd>
+<dt>Side effect</dt><dd>当前类或者其子类可以在setter中引入side effect。可以post notification或者注册为NSUndoManager或者增加caching。
+</dd>
+<dt>Locking</dt><dd>引入对property加locking，支持多线程。如果直接使用ivar access，将不会采用locking，导致crash。
+</dd>
+<dt>一致性</dt><dd>与全局property的accessor方法保持一致
+</dd>
+</dl>
+
+</div>
+
+</div>
+
+<div id="outline-container-3-4-2" class="outline-4">
+<h4 id="sec-3-4-2"><span class="section-number-4">3.4.2</span> 不应该使用accessor的地方</h4>
+<div class="outline-text-4" id="text-3-4-2">
+
+<dl>
+<dt>accessor</dt><dd>直接使用ivar
+</dd>
+<dt>dealloc</dt><dd>dealloc时对象处于一个不稳定的状态，使用accessor可能在对象正在销毁的时候接收到notification
+</dd>
+<dt>initialization</dt><dd>不能调用post notification 或有其他相同作用的功能。
+</dd>
+</dl>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-3-5" class="outline-3">
+<h3 id="sec-3-5"><span class="section-number-3">3.5</span> Categories And Extensions</h3>
+<div class="outline-text-3" id="text-3-5">
+
+
+</div>
+
+<div id="outline-container-3-5-1" class="outline-4">
+<h4 id="sec-3-5-1"><span class="section-number-4">3.5.1</span> Category</h4>
+<div class="outline-text-4" id="text-3-5-1">
+
+<ul>
+<li id="sec-3-5-1-1">特性<br/>
+<ul>
+<li>在 <b>运行期</b> 增加方法，是动态加载的
+</li>
+<li>能够分散一个大的class到各个小块
+</li>
+<li>一个过大的implementation文件通常是指你需要重构这个类，而不是把它分成各个category。如果你的类有足够正确的大小，你可以通过分成各个categories变得更加方便。
+</li>
+<li>category不能定义ivar，也不能synthesize property
+</li>
+<li>技术上来讲在category中override一个方法是可行的，但是并不建议。如果两个category实现了同样的方法，就无法确定哪一个先使用。
+</li>
+</ul>
+
+</li>
+</ul>
+<ul>
+<li id="sec-3-5-1-2">+load<br/>
+<ul>
+<li>当category第一次动态加载时，会执行+load，可以执行一些category-specific setup，例如初始化static变量。
+</li>
+<li>category不能使用+initialize，因为可能类已经实现了这个方法。如果很多category实现了+initialize，将无法确定哪一个将会执行。
+</li>
+<li>无法保证+load执行的顺序
+</li>
+<li>不能自己手动调用+load
+</li>
+<li>+load 经常在category运行期动态加载的时候执行，一般优先于main函数
+</li>
+<li>类也可以由+load函数，运行期加载，一般不常用。
+</li>
+<li>+load不必调用也不能调用 <code>[super load]</code> 。
+</li>
+</ul>
+
+</li>
+</ul>
+<ul>
+<li id="sec-3-5-1-3">Category Data Using Associative References<br/>
+<ul>
+<li>Associative Reference允许给实例对象绑定key-value data。
+</li>
+</ul>
+
+
+
+
+<pre class="src src-C"><span style="color: #c61b6e;">#import</span> &lt;objc/runtime.h&gt;
+@interface Person (EmailAddress)
+@property (readwrite, copy) <span style="color: #a57705;">NSString</span> *<span style="color: #a57705;">emailAddress</span>;
+@end
+
+@implementation Person (EmailAddress)
+<span style="color: #728a05;">static</span> <span style="color: #a57705;">char</span> <span style="color: #a57705;">emailAddressKey</span>;
+- (<span style="color: #a57705;">NSString</span>*)emailAddress {
+    <span style="color: #728a05;">return</span> objc_getAssociatedObject(self, &amp;emailAddressKey);
+}
+- (<span style="color: #a57705;">void</span>)setEmailAddress:(<span style="color: #a57705;">NSString</span>*)emailAddress {
+    objc_setAssociatedObject(self, &amp;emailAddressKey, emailAddress, OBJC_ASSOCIATION_COPY);
+}
+</pre>
+
+<ul>
+<li>associative reference是绑定于key的内存地址
+</li>
+<li>key必须指定为 <code>static char</code>
+</li>
+<li>associative reference也是一个很好的方法，给一些view panel绑定对象
+</li>
+</ul>
+
+
+
+
+<pre class="src src-C"><span style="color: #728a05;">static</span> <span style="color: #a57705;">char</span> <span style="color: #a57705;">kRepresentedObject</span>;
+
+    <span style="color: #a57705;">id</span> <span style="color: #a57705;">interestingObject</span> = ...;
+    <span style="color: #a57705;">UIAlertView</span> *<span style="color: #a57705;">alert</span> = [[UIAlertView alloc] ...];
+    objc_setAssociatedObject(alert, &amp;kRepresentedObject, interestingObject, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    [alert show]
+
+<span style="color: #81908f; font-style: italic;">// </span><span style="color: #708183; font-style: italic;">alert view delegate</span>
+- (<span style="color: #a57705;">void</span>)alertView:(<span style="color: #a57705;">UIAlertView</span>*)<span style="color: #a57705;">alertView</span> <span style="color: #2075c7;">clickedButtonAtIndex</span>:(<span style="color: #a57705;">NSInteger</span>)index {
+    <span style="color: #a57705;">UIButton</span> *<span style="color: #a57705;">sender</span> = objc_getAssociatedObject(alertView, &amp;kRepresentedObject);
+    sender....
+}
+</pre>
+
+<ul>
+<li>associative reference的限制在于它无法与 <code>encodeWithCoder:</code> 结合
+</li>
+</ul>
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-3-5-2" class="outline-4">
+<h4 id="sec-3-5-2"><span class="section-number-4">3.5.2</span> 享元(flyweight)方法使用category data</h4>
+<div class="outline-text-4" id="text-3-5-2">
+
+<ul>
+<li>相比于在object中存入data，使用享元将在object外部存储数据并且保有一些key去找到它们
+</li>
+<li>下面的person类有一个field:identifier，作为这个key
+</li>
+</ul>
+
+
+
+
+<pre class="src src-C">@interface Person : NSObject
+@property (readonly, copy) <span style="color: #a57705;">NSString</span> *<span style="color: #a57705;">identifier</span>;
+@property (readwrite, copy) <span style="color: #a57705;">NSString</span> *<span style="color: #a57705;">name</span>;
+- (<span style="color: #a57705;">Person</span> *)initwithIdentifier:(<span style="color: #a57705;">NSString</span>*)anIdentifier;
+@end
+@implementation Person
+@synthesize identifier = identifer_;
+@synthesize name = name_;
+- (<span style="color: #a57705;">Person</span>*)initWithIdentifier:(<span style="color: #a57705;">NSString</span>*) {
+    <span style="color: #728a05;">if</span> ((self = [super init])) {
+        identifier_ = [anIdentifier copy];
+    }
+    <span style="color: #728a05;">return</span> self;
+}
+@end
+
+<span style="color: #81908f; font-style: italic;">// </span><span style="color: #708183; font-style: italic;">create a emailAddress data</span>
+@interface Person(EmailAddress)
+@property (readwrite, copy) <span style="color: #a57705;">NSString</span> *<span style="color: #a57705;">emailAddress</span>;
+@end
+@implementation Person(EmailAddress)
+<span style="color: #728a05;">static</span> <span style="color: #a57705;">NSMutableDictionary</span> *<span style="color: #a57705;">sEmailAddressForIdentifier</span> = nil;
++ (<span style="color: #a57705;">void</span>)load {
+    sEmailAddressForIdentifier = [[NSMutableDictionary alloc] init];
+}
+- (<span style="color: #a57705;">NSString</span>*)emailAddress {
+    <span style="color: #728a05;">return</span> [sEmailAddressForIdentifier objectForKey:[self identifier]];
+}
+- (<span style="color: #a57705;">void</span>)setEmailAddress:(<span style="color: #a57705;">NSString</span>*)anAddress {
+    [sEmailAddressForIdentifier setObject:[anAddress copy] forKey:[self identifier]];
+}
+@end
+</pre>
+
+<ul>
+<li>享元的方法无法释放内存，除非你能跟踪到Person类被摧毁的时候。
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-3-5-3" class="outline-4">
+<h4 id="sec-3-5-3"><span class="section-number-4">3.5.3</span> Class Extension</h4>
+<div class="outline-text-4" id="text-3-5-3">
+
+<ul>
+<li>category的名字是空的，即为class extension
+</li>
+<li>在.m中定义私有方法
+</li>
+<li>会在 <b>编译期</b> 而不是运行期加载。
+</li>
+</ul>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-3-6" class="outline-3">
+<h3 id="sec-3-6"><span class="section-number-3">3.6</span> 正式和非正式协议</h3>
+<div class="outline-text-3" id="text-3-6">
+
+
+</div>
+
+<div id="outline-container-3-6-1" class="outline-4">
+<h4 id="sec-3-6-1"><span class="section-number-4">3.6.1</span> 非正式协议</h4>
+<div class="outline-text-4" id="text-3-6-1">
+
+<ul>
+<li>NSObject上的一个category，即为非正式协议
+</li>
+<li>Category会告诉编译器存在这么一个方法，但并不要求这个方法一定会被实现
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-3-6-2" class="outline-4">
+<h4 id="sec-3-6-2"><span class="section-number-4">3.6.2</span> 正式协议Protocol</h4>
+<div class="outline-text-4" id="text-3-6-2">
+
+<ul>
+<li>protocol可以像class一样继承
+</li>
+<li>NSObject分离为一个class和一个protocol。主要是为了支持NSProxy。protocol继承NSObject是继承它的protocol，而不是class
+</li>
+<li>对于delegate protocol，代理的对象经常位于第一个参数位置，这样允许一个代理管理多个代理对象。
+</li>
+<li>如果没有别的参数，class name放到最后(e.g. <code>numberOfSectionsInTableView:)</code> )
+</li>
+<li>如果有别的参数，class name出现在第一个位置(e.g. <code>tableView:numberOfRowsInSection:</code> )
+</li>
+<li>能够同时指定class和protocol
+</li>
+</ul>
+
+
+
+
+<pre class="src src-C">@property (nonatomic, weak) MyClass*&lt;MyDelegate, UITableViewDelegate&gt; delegate;
+</pre>
+
+
+</div>
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> Cocoa设计模式</h2>
+<div class="outline-text-2" id="text-4">
+
+
+</div>
+
+<div id="outline-container-4-1" class="outline-3">
+<h3 id="sec-4-1"><span class="section-number-3">4.1</span> MVC</h3>
+<div class="outline-text-3" id="text-4-1">
+
+
+</div>
+
+<div id="outline-container-4-1-1" class="outline-4">
+<h4 id="sec-4-1-1"><span class="section-number-4">4.1.1</span> model</h4>
+<div class="outline-text-4" id="text-4-1-1">
+
+<ul>
+<li>model可以是mutable也可以是immutable的
+</li>
+<li>使用immutable对象做model有很多好处
+<ul>
+<li>能够通过调用retain来实现copy
+</li>
+<li>即使不用锁也是线程安全的
+</li>
+<li>保证了对象经常处于一个稳定的状态
+</li>
+</ul>
+
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-4-1-2" class="outline-4">
+<h4 id="sec-4-1-2"><span class="section-number-4">4.1.2</span> view</h4>
+<div class="outline-text-4" id="text-4-1-2">
+
+<ul>
+<li>不能有直接带有controller reference
+</li>
+<li>不能带有除了superview和subview的其他 view reference
+</li>
+<li>需要对重用性和简易型(ease-of-use)进行一个平衡
+</li>
+<li>负责接收用户事件，但不处理，交给view的delegate&ndash;controller处理
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-4-1-3" class="outline-4">
+<h4 id="sec-4-1-3"><span class="section-number-4">4.1.3</span> controller</h4>
+<div class="outline-text-4" id="text-4-1-3">
+
+<ul>
+<li>coordinate between view and model
+</li>
+<li>经常以Manager结尾，并且一般为singleton
+</li>
+<li>应该避免直接引用到别的controller
+</li>
+<li>一个经常犯的错误就是允许许多对象直接引用app delegate
+</li>
+<li>最好的access全局变量的方法是使用singleton
+</li>
+</ul>
+
+
+
+
+<pre class="src src-C"><span style="color: #81908f; font-style: italic;">// </span><span style="color: #708183; font-style: italic;">Do not do this</span>
+<span style="color: #a57705;">MyAppDelegate</span> *<span style="color: #a57705;">appDelegate</span> = (<span style="color: #a57705;">MyAppDelegate</span>*)[[UIApplication sharedApplication] delegate];
+<span style="color: #a57705;">Something</span> *<span style="color: #a57705;">something</span> = [appDelegate something];
+<span style="color: #81908f; font-style: italic;">// </span><span style="color: #708183; font-style: italic;">Do not do this</span>
+</pre>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-4-2" class="outline-3">
+<h3 id="sec-4-2"><span class="section-number-3">4.2</span> Delegate &amp; DataSource</h3>
+<div class="outline-text-3" id="text-4-2">
+
+<ul>
+<li>delegate负责appearance&amp;behavior，datasource负责显示的data
+</li>
+<li>delegate一般设为weak，当然也有特例。
+</li>
+</ul>
+
+
+
+
+<pre class="example">NSURLConnection retain its delegate, 仅在这个connection正在loading的时候
+在loading完成之后，NSURLConnection release delegate，防止retain loop
+</pre>
+
+<ul>
+<li>delegate方法同时也是notification的接收方法，是很普遍的。
+</li>
+</ul>
+
+
+
+
+<pre class="example">UIApplication 调用它的delegate方法 applicationWilTerminate:
+它也会post一个notification UIApplicationWillTerminateNotification
+</pre>
+
+<ul>
+<li>delegate是一种strategy pattern
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-4-3" class="outline-3">
+<h3 id="sec-4-3"><span class="section-number-3">4.3</span> Command Pattern</h3>
+<div class="outline-text-3" id="text-4-3">
+
+<ul>
+<li>把message请求封装成一个对象。
+</li>
+<li>Cocoa的cammand pattern是target-action和NSInvocation。
+</li>
+</ul>
+
+
+</div>
+
+<div id="outline-container-4-3-1" class="outline-4">
+<h4 id="sec-4-3-1"><span class="section-number-4">4.3.1</span> Target-Action</h4>
+<div class="outline-text-4" id="text-4-3-1">
+
+<ul>
+<li>适用于UIControl。 <code>addTarget:action:forControlEvents:</code>
+</li>
+<li>target:发送消息到这个object
+</li>
+<li>UIControl的action selector签名必须为:
+<ul>
+<li><code>- (void)action;</code>
+</li>
+<li><code>- (void)action:(id)sender;</code>
+</li>
+<li><code>- (void)action:(id)sender forEvent:(UIEvent*)event;</code>
+</li>
+</ul>
+
+</li>
+<li>UIControl能够如下调用这个action:
+  <code>[target performSelector:action withObject:self withObject:event];</code>
+</li>
+<li>target-action和delegate相似，区别在于target-action的selector是可以配置的，而delegate的selector是被协议定义好的。
+</li>
+<li>编译器无法决定这个target是否实现了一个给定的action，但能够通过打开编译器属性来产生warning(Undeclared Selector warning)。编译属性为GCC<sub>WARN</sub><sub>UNDECLARED</sub><sub>SELECTOR</sub>, -Wundeclared-selector。
+</li>
+<li>如果只发送一个action给target对象，则采用target-action；如果发送多个action，则采用delegate。
+</li>
+</ul>
+
+
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="postamble">
+<p class="date">Date: 2013-06-08 10:55:22 CST</p>
+<p class="author">Author: Yifeng Li</p>
+<p class="creator">Org version 7.8.11 with Emacs version 24</p>
+<a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>
+
+</div>
+</body>
+</html>

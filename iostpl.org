@@ -1,0 +1,317 @@
+* ios5新功能
+** iCloud
++ 支持键值存储、冲突处理
++ UIDocument/UIManagedDocument/NSFileManager
+** LLVM3.0编译器
+** ARC
++ 最小支持IOS4
++ 是编译器LLVM特性
+** Storyboard
++ 是IOS5特性
+** UIKit Customization
++ UIAppearance protocol
+** Twitter等社交框架
++ via iOS
++ Twitter.Framework
+** 其它
++ Newsstand Kit
++ CIImage/CIFilter: 图片处理
++ CIDetector: 模式识别
++ UIStepper(new control)/UIPageViewController(curl)
+
+* Xcode4
++ 默认编译器: LLVM3.0
++ front end: Clang 更好更快的编译
+** UI
++ 快捷键
+  - Cmd-Shift-2 :: Organizer
+  - F6 :: step over
+  - F7 :: step into
+  - F8 :: step out
+  - Cmd-Opt-J :: 源文件filter
+** LLVM3.0
+- 编译器前端提供一个即时的解析以及对预定义宏的处理。
+- 后端生成二进制代码并且进行优化。
+- GCC是一个后端编译器
+** Schemes
+build产品的一系列指令
+*** 分类
+- Run ::
+- Test ::
++ Profile :: Instruments
++ Analyze :: Clang static analyzer 提示潜在的内存泄露
++ Archive :: 打包成xcarchive(ipa)文件
+*** 分享scheme
++ scheme保存在xcuserdata文件夹下
++ 选中sdhared后，scheme会复制到xcshareddata文件夹
+** build配置
++ 新建 :: File->New File->Other->Configuration Setting File
++ 共享 :: build config里可以包含另一个build config，采用'#include "share.xcconfig"'
++ xcconfig添加行 :: project->build settings->选择basic和levels,Cmd-C进行复制
++ 采用xcconfig :: project->info->configuration
+** Organizer
+*** Automatic Device Provisioning
+任何带有Push Notification, Game Center, iCloud, IAP都不能采用*作为appid的，不能使用
+*** console logs
+*** sandbox data
+可以往sandbox进行添加删除工作
+
+* OBJC最佳实践
+** 命名规范
++ 静态变量以s开头、全局变量以g开头
+=static MYThing *sSharedInstance;=
++ Core Foundation中，常量以k开头
+=static const NSUInteger kMaxNumberOfRows = 3;=
++ 方法的参数以a/an/the开头
++ instance varibles (ivars) 以m开头 或者 以结尾，避免与apple预定义的产生冲突
++ 类的第一个字母都要大写
+** ARC
+*** ARC与垃圾回收不同
++ ARC内存回收进行在 *编译期* 而不在运行期，在编译期间注入retain和release，所以要比垃圾回收速度性能要快很多
++ ARC不能处理引用循环，但是垃圾回收可以
+#+BEGIN_EXAMPLE
+External Object -> Object A <-> Object B
+如果External Object到Object A的链接断开，
+在Snow Leopard垃圾回收之中，Object A & B都会摧毁，因为它们已经被程序遗弃；
+在ARC中，Object A & B不会被销毁，因为它们互相有一个大于零的retain count。
+#+END_EXAMPLE
++ ARC中也必须保持对strong关系的追踪，以防引用循环
+*** ARC最佳实践
++ delegate应该总是weak
++ 可以进行dealloc操作，例如移除KVO， *不能调用* =[super dealloc]=
++ 定义一个 =copy****= 方法，ARC会 +1 retain count。同样，也会在相应地方加入一个 =release= 。
+#+BEGIN_EXAMPLE
+可能违背于Cocoa命名规范
+例如一个property名为copyRight，ARC看到它的accessor方法以copy开头，所以会将retain count +1
+如果getter和调用的代码都用ARC编译的，会稍微不那么效率点，先retain count +1 再 release
+可能会碰到的问题：
+如果calling code用ARC编译，而copyRight不是，则ARC会注入一个release, 导致程序crash
+如果copyRight使用ARC编译，calling code不是，则会少一个release，导致内存泄露
+解决方案：
++ 重命名为copyright
++ 在方法声明时候加上NS_RETURNS_RETAINED或NS_RETURNS_NOT_RETAINED
+#+END_EXAMPLE
+*** ARC规范
++ 不要调用retain、release和autorelease，也不要重写这些方法。
++ 不要在C struct中定义对象指针。如果一定要再C struct中存储对象，需要将该对象强制转换成void*
++ 不要在id和void*之间强制转换，除非使用bridging cast。
++ 不要使用NSAutoreleasePool。@autoreleasepool比NSAutoreleasePool快了超过20倍。
+** Properties
++ synthesize能够自动生成ivar
++ 在category中不能synthesize一个property
++ 建议全部使用property并且synthesize每一个property
++ 如下代码
+#+BEGIN_SRC C
+@interface MyClass : NSObject
+@property (readonly, strong) NSString *readonlyString;
+@end
+
+@interface MyClass()
+@property (readwrite, strong) NSString *readonlyString;
+@end
+@implementation MyClass
+@synthesize readonlyString = readonlyString_
+@end
+#+END_SRC
+=readonlyString= 在class extension中重定义成readwrite，允许你建一个私立的setter。
+*** Property Attribute
+**** Atomic -- nonatomic.
++ 没有 =atomic= 属性, nonatomic非原子性，默认即为atomic。
++ 如果将property设为 =atomic=，它的accessor是线程安全的，但是array的 =objectAtIndex= 并不是线程安全的，需要写如下code
+#+BEGIN_SRC C
+[_propertyLock lock];
+id result = [[value retain] autorelease];
+[_propertyLock unlock];
+return result;
+// retain/autorelase防止其他线程的caller在这个accessor运行中release了这个对象
+#+END_SRC
++ ARC对 =atomic= 有着很好的性能提高
+**** Writability
++ readwrite
++ readonly
+**** Setter语义
++ copy ： 对于immutable类应该使用copy。由于mutable类是immutable类的子类，这样可以防止例如将NSString赋值给NSMutableString, 从而造成immutable类改变的情况出现。
++ weak
++ strong
+*** property实践
++ getter不应该有任何外部的副作用，可以有内部的副作用如caching。
++ 如下能够使private ivar脱离public header。
+#+BEGIN_SRC C
+@implementation Something {
+    NSString *name;
+    __weak NSString *weakName;     // default strong; weak ivar
+}
+#+END_SRC
+** Accessor
+*** 使用accessor的原因
++ KVO :: property能够被observed。如果不使用accessor，每次都需要自己调用 =willChangeValueForKey:= 和 =didChangeValueForKey:= ，而使用accessor会自动调用这些观察方法。
++ Side effect :: 当前类或者其子类可以在setter中引入side effect。可以post notification或者注册为NSUndoManager或者增加caching。
++ Locking :: 引入对property加locking，支持多线程。如果直接使用ivar access，将不会采用locking，导致crash。
++ 一致性 :: 与全局property的accessor方法保持一致
+*** 不应该使用accessor的地方
++ accessor :: 直接使用ivar
++ dealloc :: dealloc时对象处于一个不稳定的状态，使用accessor可能在对象正在销毁的时候接收到notification
++ initialization :: 不能调用post notification 或有其他相同作用的功能。
+** Categories And Extensions
+*** Category
+**** 特性
++ 在 *运行期* 增加方法，是动态加载的
++ 能够分散一个大的class到各个小块
++ 一个过大的implementation文件通常是指你需要重构这个类，而不是把它分成各个category。如果你的类有足够正确的大小，你可以通过分成各个categories变得更加方便。
++ category不能定义ivar，也不能synthesize property
++ 技术上来讲在category中override一个方法是可行的，但是并不建议。如果两个category实现了同样的方法，就无法确定哪一个先使用。
+**** +load
++ 当category第一次动态加载时，会执行+load，可以执行一些category-specific setup，例如初始化static变量。
++ category不能使用+initialize，因为可能类已经实现了这个方法。如果很多category实现了+initialize，将无法确定哪一个将会执行。
++ 无法保证+load执行的顺序
++ 不能自己手动调用+load
++ +load 经常在category运行期动态加载的时候执行，一般优先于main函数
++ 类也可以由+load函数，运行期加载，一般不常用。
++ +load不必调用也不能调用 =[super load]= 。
+**** Category Data Using Associative References
++ Associative Reference允许给实例对象绑定key-value data。
+#+BEGIN_SRC C
+#import <objc/runtime.h>
+@interface Person (EmailAddress)
+@property (readwrite, copy) NSString *emailAddress;
+@end
+
+@implementation Person (EmailAddress)
+static char emailAddressKey;
+- (NSString*)emailAddress {
+    return objc_getAssociatedObject(self, &emailAddressKey);
+}
+- (void)setEmailAddress:(NSString*)emailAddress {
+    objc_setAssociatedObject(self, &emailAddressKey, emailAddress, OBJC_ASSOCIATION_COPY);
+}
+#+END_SRC
++ associative reference是绑定于key的内存地址
++ key必须指定为 =static char=
++ associative reference也是一个很好的方法，给一些view panel绑定对象
+#+BEGIN_SRC C
+static char kRepresentedObject;
+
+    id interestingObject = ...;
+    UIAlertView *alert = [[UIAlertView alloc] ...];
+    objc_setAssociatedObject(alert, &kRepresentedObject, interestingObject, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    [alert show]
+
+// alert view delegate
+- (void)alertView:(UIAlertView*)alertView clickedButtonAtIndex:(NSInteger)index {
+    UIButton *sender = objc_getAssociatedObject(alertView, &kRepresentedObject);
+    sender....
+}
+#+END_SRC
++ associative reference的限制在于它无法与 =encodeWithCoder:= 结合
+*** 享元(flyweight)方法使用category data
++ 相比于在object中存入data，使用享元将在object外部存储数据并且保有一些key去找到它们
++ 下面的person类有一个field:identifier，作为这个key
+#+BEGIN_SRC C
+@interface Person : NSObject
+@property (readonly, copy) NSString *identifier;
+@property (readwrite, copy) NSString *name;
+- (Person *)initwithIdentifier:(NSString*)anIdentifier;
+@end
+@implementation Person
+@synthesize identifier = identifer_;
+@synthesize name = name_;
+- (Person*)initWithIdentifier:(NSString*) {
+    if ((self = [super init])) {
+        identifier_ = [anIdentifier copy];
+    }
+    return self;
+}
+@end
+
+// create a emailAddress data
+@interface Person(EmailAddress)
+@property (readwrite, copy) NSString *emailAddress;
+@end
+@implementation Person(EmailAddress)
+static NSMutableDictionary *sEmailAddressForIdentifier = nil;
++ (void)load {
+    sEmailAddressForIdentifier = [[NSMutableDictionary alloc] init];
+}
+- (NSString*)emailAddress {
+    return [sEmailAddressForIdentifier objectForKey:[self identifier]];
+}
+- (void)setEmailAddress:(NSString*)anAddress {
+    [sEmailAddressForIdentifier setObject:[anAddress copy] forKey:[self identifier]];
+}
+@end
+#+END_SRC
++ 享元的方法无法释放内存，除非你能跟踪到Person类被摧毁的时候。
+*** Class Extension
++ category的名字是空的，即为class extension
++ 在.m中定义私有方法
++ 会在 *编译期* 而不是运行期加载。
+** 正式和非正式协议
+*** 非正式协议
++ NSObject上的一个category，即为非正式协议
++ Category会告诉编译器存在这么一个方法，但并不要求这个方法一定会被实现
+*** 正式协议Protocol
++ protocol可以像class一样继承
++ NSObject分离为一个class和一个protocol。主要是为了支持NSProxy。protocol继承NSObject是继承它的protocol，而不是class
++ 对于delegate protocol，代理的对象经常位于第一个参数位置，这样允许一个代理管理多个代理对象。
++ 如果没有别的参数，class name放到最后(e.g. =numberOfSectionsInTableView:)= )
++ 如果有别的参数，class name出现在第一个位置(e.g. =tableView:numberOfRowsInSection:= )
++ 能够同时指定class和protocol
+#+BEGIN_SRC C
+@property (nonatomic, weak) MyClass*<MyDelegate, UITableViewDelegate> delegate;
+#+END_SRC
+
+* Cocoa设计模式
+** MVC
+*** model
++ model可以是mutable也可以是immutable的
++ 使用immutable对象做model有很多好处
+  - 能够通过调用retain来实现copy
+  - 即使不用锁也是线程安全的
+  - 保证了对象经常处于一个稳定的状态
+*** view
++ 不能有直接带有controller reference
++ 不能带有除了superview和subview的其他 view reference
++ 需要对重用性和简易型(ease-of-use)进行一个平衡
++ 负责接收用户事件，但不处理，交给view的delegate--controller处理
+*** controller
++ coordinate between view and model
++ 经常以Manager结尾，并且一般为singleton
++ 应该避免直接引用到别的controller
++ 一个经常犯的错误就是允许许多对象直接引用app delegate
++ 最好的access全局变量的方法是使用singleton
+#+BEGIN_SRC C
+// Do not do this
+MyAppDelegate *appDelegate = (MyAppDelegate*)[[UIApplication sharedApplication] delegate];
+Something *something = [appDelegate something];
+// Do not do this
+#+END_SRC
+** Delegate & DataSource
++ delegate负责appearance&behavior，datasource负责显示的data
++ delegate一般设为weak，当然也有特例。
+#+BEGIN_EXAMPLE
+NSURLConnection retain its delegate, 仅在这个connection正在loading的时候
+在loading完成之后，NSURLConnection release delegate，防止retain loop
+#+END_EXAMPLE
++ delegate方法同时也是notification的接收方法，是很普遍的。
+#+BEGIN_EXAMPLE
+UIApplication 调用它的delegate方法 applicationWilTerminate:
+它也会post一个notification UIApplicationWillTerminateNotification
+#+END_EXAMPLE
++ delegate是一种strategy pattern
+** Command Pattern
++ 把message请求封装成一个对象。
++ Cocoa的cammand pattern是target-action和NSInvocation。
+*** Target-Action
++ 适用于UIControl。 =addTarget:action:forControlEvents:=
++ target:发送消息到这个object
++ UIControl的action selector签名必须为:
+  - =- (void)action;=
+  - =- (void)action:(id)sender;=
+  - =- (void)action:(id)sender forEvent:(UIEvent*)event;=
++ UIControl能够如下调用这个action:
+  =[target performSelector:action withObject:self withObject:event];=
++ target-action和delegate相似，区别在于target-action的selector是可以配置的，而delegate的selector是被协议定义好的。
++ 编译器无法决定这个target是否实现了一个给定的action，但能够通过打开编译器属性来产生warning(Undeclared Selector warning)。编译属性为GCC_WARN_UNDECLARED_SELECTOR, -Wundeclared-selector。
++ 如果只发送一个action给target对象，则采用target-action；如果发送多个action，则采用delegate。
+*** 使用签名以及Invocations
+
