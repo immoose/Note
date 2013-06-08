@@ -106,7 +106,7 @@ NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:sig];
 *** Trampolines(蹦床)
 + Trampoline从一个object发送消息至另一个object，一般使用 =forwardInvocation:= 去处理消息实体，如果一个object不能响应一个selector，在objc抛出一个异常之前，它会新建一个NSInvocation并且传递给这个object的 =forwardInvocation:= 方法。能够使用这个方法传递任何消息。在功能上类似于 =NSNotification= ,但是要更为简单，在有很多observers的时候要更快。
 + 下面的例子中，=RNObserverManager= 是一个trampoline。任何发给trampoline的消息会去注册一个响应那个selector的observer。
-#+BEGIN_SRC C -n -r -l
+#+BEGIN_SRC OBJC
 #import <objc/runtime.h>
 @interface RNObserverManager : NSObject
 - (id)initWithProtocol:(Protocol*)protocol observers:(NSSet*)observers;
