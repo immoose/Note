@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
 <meta name="title" content="iostpl<sub>ch4</sub><sub>cocoa</sub><sub>design</sub><sub>pattern</sub>"/>
 <meta name="generator" content="Org-mode"/>
-<meta name="generated" content="2013-06-09 00:45:10 CST"/>
+<meta name="generated" content="2013-06-09 00:55:20 CST"/>
 <meta name="author" content="Yifeng Li"/>
 <meta name="description" content=""/>
 <meta name="keywords" content=""/>
@@ -423,9 +423,9 @@ allocSEL = [NSStrign methodSignatureForSelector:allocSEL];
 
 <pre class="src src-C"><span style="color: #483d8b;">#import</span> &lt;objc/runtime.h&gt;
 @interface RNObserverManager : NSObject
-- (<span style="color: #228b22;">id</span>)initWithProtocol:(<span style="color: #228b22;">Protocol</span>*)<span style="color: #228b22;">protocol</span> <span style="color: #0000ff;">observers</span>:(<span style="color: #228b22;">NSSet</span>*)observers;
-- (<span style="color: #228b22;">void</span>)addObserver:(<span style="color: #228b22;">id</span>)observer;
-- (<span style="color: #228b22;">void</span>)removeObserver:(<span style="color: #228b22;">id</span>)observer;
+-(<span style="color: #228b22;">id</span>)initWithProtocol:(<span style="color: #228b22;">Protocol</span>*)<span style="color: #228b22;">protocol</span> <span style="color: #0000ff;">observers</span>:(<span style="color: #228b22;">NSSet</span>*)observers;
+-(<span style="color: #228b22;">void</span>)addObserver:(<span style="color: #228b22;">id</span>)observer;
+-(<span style="color: #228b22;">void</span>)removeObserver:(<span style="color: #228b22;">id</span>)observer;
 @end
 @interface RNObserverManager()
 @property (nonatomic, readonly, strong) <span style="color: #228b22;">NSMutableSet</span> *<span style="color: #a0522d;">observers</span>;
@@ -434,18 +434,18 @@ allocSEL = [NSStrign methodSignatureForSelector:allocSEL];
 @implementation RNObserverManager
 @synthesize observers = observers_;
 @synthesize protocol = protocol_;
-- (<span style="color: #228b22;">id</span>)initWithProtocol:(<span style="color: #228b22;">Protocol</span> *)<span style="color: #228b22;">protocol</span> <span style="color: #0000ff;">observers</span>:(<span style="color: #228b22;">NSSet</span>*)observers {
+-(<span style="color: #228b22;">id</span>)initWithProtocol:(<span style="color: #228b22;">Protocol</span> *)<span style="color: #228b22;">protocol</span> <span style="color: #0000ff;">observers</span>:(<span style="color: #228b22;">NSSet</span>*)observers {
   <span style="color: #a020f0;">if</span> ((self == [super init])) {
     protocol_ = protocol;
     observers_ = [NSMutableSet setWithSet: Observers];
   }
   <span style="color: #a020f0;">return</span> self;
 }
-- (<span style="color: #228b22;">void</span>)addObserver:(<span style="color: #228b22;">id</span>)observer {
+-(<span style="color: #228b22;">void</span>)addObserver:(<span style="color: #228b22;">id</span>)observer {
   NSAssert([observer conformsToProtocol:self.protocol], @<span style="color: #8b2252;">"Observer must confrom to protocol."</span>);
   [self.observers addObject:observer];
 }
-- (<span style="color: #228b22;">void</span>)removeObserver:(<span style="color: #228b22;">id</span>)observer {
+-(<span style="color: #228b22;">void</span>)removeObserver:(<span style="color: #228b22;">id</span>)observer {
   [self.observers removeObject:observer];
 }
 </pre>
@@ -458,7 +458,7 @@ allocSEL = [NSStrign methodSignatureForSelector:allocSEL];
 
 
 
-<pre class="src src-C">- (<span style="color: #228b22;">NSMethodSignature</span>*)methodSignatureForSelector:(<span style="color: #228b22;">SEL</span>)sel
+<pre class="src src-C">-(<span style="color: #228b22;">NSMethodSignature</span>*)methodSignatureForSelector:(<span style="color: #228b22;">SEL</span>)sel
 {
   <span style="color: #b22222;">// </span><span style="color: #b22222;">check the trampoline itself</span>
   <span style="color: #228b22;">NSMethodSignature</span> *<span style="color: #a0522d;">result</span> = [super methodSignatureForSelector:sel];
@@ -489,7 +489,7 @@ allocSEL = [NSStrign methodSignatureForSelector:allocSEL];
 
 
 
-<pre class="src src-C">- (<span style="color: #228b22;">void</span>)forwardInvocation:(<span style="color: #228b22;">NSInvocation</span>*)invocation {
+<pre class="src src-C">-(<span style="color: #228b22;">void</span>)forwardInvocation:(<span style="color: #228b22;">NSInvocation</span>*)invocation {
   <span style="color: #228b22;">SEL</span> <span style="color: #a0522d;">selector</span> = [invocation selector];
   <span style="color: #a020f0;">for</span> (id responder <span style="color: #228b22;">in</span> <span style="color: #a0522d;">self</span>.observers) {
     <span style="color: #a020f0;">if</span> ([responder respondsToSelector:selector]) {
@@ -530,17 +530,17 @@ id observerManager = [[RNObserverManager alloc] initWithProtocol:@protocol(MyPro
 @end
 @implementation RNMainThreadTrampoline
 @synthesize target = target_;
-- (<span style="color: #228b22;">id</span>)initWithTarget:(<span style="color: #228b22;">id</span>)aTarget {
+-(<span style="color: #228b22;">id</span>)initWithTarget:(<span style="color: #228b22;">id</span>)aTarget {
   <span style="color: #a020f0;">if</span> ((self == [super init])) {
     target_ = aTarget;
   }
   <span style="color: #a020f0;">return</span> self;
 }
-- (<span style="color: #228b22;">NSMethodSignature</span> *)methodSignatureForSelector:(<span style="color: #228b22;">SEL</span>)sel
+-(<span style="color: #228b22;">NSMethodSignature</span> *)methodSignatureForSelector:(<span style="color: #228b22;">SEL</span>)sel
 {
   <span style="color: #a020f0;">return</span> [self.target methodSignatureForSelector:sel];
 }
-- (<span style="color: #228b22;">void</span>)forwardInvocation:(<span style="color: #228b22;">NSInvocation</span>*)invocation {
+-(<span style="color: #228b22;">void</span>)forwardInvocation:(<span style="color: #228b22;">NSInvocation</span>*)invocation {
   [invocation setTarget:self.target];
   [invocation retainArguments];
   [invocation performSelectorOnMainThread:@selector(invoke) withObject:nil waitUntilDone:NO];
@@ -560,7 +560,7 @@ id observerManager = [[RNObserverManager alloc] initWithProtocol:@protocol(MyPro
 </div>
 
 <div id="postamble">
-<p class="date">Date: 2013-06-09 00:45:10 CST</p>
+<p class="date">Date: 2013-06-09 00:55:20 CST</p>
 <p class="author">Author: Yifeng Li</p>
 <p class="creator">Org version 7.8.11 with Emacs version 24</p>
 <a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>
