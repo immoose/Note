@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
 <meta name="title" content="iostpl<sub>ch4</sub><sub>cocoa</sub><sub>design</sub><sub>pattern</sub>"/>
 <meta name="generator" content="Org-mode"/>
-<meta name="generated" content="2013-06-09 00:55:20 CST"/>
+<meta name="generated" content="2013-06-10 15:33:44 CST"/>
 <meta name="author" content="Yifeng Li"/>
 <meta name="description" content=""/>
 <meta name="keywords" content=""/>
@@ -113,6 +113,20 @@
 <li><a href="#sec-1-3-1">1.3.1 Target-Action</a></li>
 <li><a href="#sec-1-3-2">1.3.2 使用签名以及Invocations</a></li>
 <li><a href="#sec-1-3-3">1.3.3 Trampolines(蹦床)</a></li>
+</ul>
+</li>
+<li><a href="#sec-1-4">1.4 Observer Pattern</a>
+<ul>
+<li><a href="#sec-1-4-1">1.4.1 Cocoa中的Observer Pattern包含NSNotification，delegate observations，和KVO。</a></li>
+<li><a href="#sec-1-4-2">1.4.2 NSNotification</a></li>
+</ul>
+</li>
+<li><a href="#sec-1-5">1.5 Singleton Pattern</a>
+<ul>
+<li><a href="#sec-1-5-1">1.5.1 可以作为一个全局变量</a></li>
+<li><a href="#sec-1-5-2">1.5.2 一般情况下使用shared singleton 而不是 strict singleton</a></li>
+<li><a href="#sec-1-5-3">1.5.3 可以继承Singleton，但是不建议这么做。</a></li>
+<li><a href="#sec-1-5-4">1.5.4 利用singleton存储全局变量</a></li>
 </ul>
 </li>
 </ul>
@@ -553,6 +567,229 @@ id observerManager = [[RNObserverManager alloc] initWithProtocol:@protocol(MyPro
 </li>
 </ul>
 
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1-4" class="outline-3">
+<h3 id="sec-1-4"><span class="section-number-3">1.4</span> Observer Pattern</h3>
+<div class="outline-text-3" id="text-1-4">
+
+
+</div>
+
+<div id="outline-container-1-4-1" class="outline-4">
+<h4 id="sec-1-4-1"><span class="section-number-4">1.4.1</span> Cocoa中的Observer Pattern包含NSNotification，delegate observations，和KVO。</h4>
+<div class="outline-text-4" id="text-1-4-1">
+
+</div>
+
+</div>
+
+<div id="outline-container-1-4-2" class="outline-4">
+<h4 id="sec-1-4-2"><span class="section-number-4">1.4.2</span> NSNotification</h4>
+<div class="outline-text-4" id="text-1-4-2">
+
+<ul>
+<li>example
+</li>
+</ul>
+
+
+
+
+<pre class="src src-C"><span style="color: #b22222;">// </span><span style="color: #b22222;">Poster.h</span>
+<span style="color: #b22222;">// </span><span style="color: #b22222;">define a string constant for the notification</span>
+<span style="color: #a020f0;">extern</span> <span style="color: #228b22;">NSString</span> * <span style="color: #a020f0;">const</span> <span style="color: #a0522d;">PosterDidSomethingNotification</span>;
+
+<span style="color: #b22222;">// </span><span style="color: #b22222;">Poster.m</span>
+<span style="color: #228b22;">NSString</span> * <span style="color: #a020f0;">const</span> <span style="color: #a0522d;">PosterDidSomethingNotification</span> = @<span style="color: #8b2252;">"PosterDidSomethingNotification"</span>;
+...
+<span style="color: #b22222;">// </span><span style="color: #b22222;">include the poster as the object in the notification</span>
+[[NSNotificationCenter defaultCenter] postNotificationName:PosterDidSomethingNotification object:self];
+
+<span style="color: #b22222;">// </span><span style="color: #b22222;">Observer.m</span>
+<span style="color: #b22222;">// </span><span style="color: #b22222;">import Poster.h to get the string constant</span>
+<span style="color: #483d8b;">#import</span> <span style="color: #8b2252;">"Poster.h"</span>
+...
+<span style="color: #b22222;">//</span><span style="color: #b22222;">Register to receive a notification</span>
+[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(posterDidSomething:) name:PosterDidSomethingNotification object:nil];
+...
+- (<span style="color: #228b22;">void</span>)posterDidSomething:(<span style="color: #228b22;">NSNotification</span>*)note {
+  <span style="color: #b22222;">// </span><span style="color: #b22222;">handle the notfication here</span>
+}
+- (<span style="color: #228b22;">void</span>)dealloc {
+  <span style="color: #b22222;">// </span><span style="color: #b22222;">Always remove your observations</span>
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
+  [super dealloc];
+}
+</pre>
+
+<ul>
+<li>注意到notification的名字 <code>PosterDidSomethingNotification</code> ,它是以第二个参数object的类名开头，随后跟一个follow或者did。
+</li>
+</ul>
+
+
+
+
+<pre class="src src-C"><span style="color: #b22222;">// </span><span style="color: #b22222;">&#25351;&#21521;&#19968;&#20010;immutable string&#30340;&#24120;&#37327;&#25351;&#38024;</span>
+<span style="color: #b22222;">// </span><span style="color: #b22222;">&#27604;&#36739;&#22909;&#30340;&#35760;&#24518;&#26041;&#27861;&#23601;&#26159;&#20174;&#21491;&#36793;&#24448;&#24038;&#35835; const * NSString</span>
+<span style="color: #a020f0;">extern</span> <span style="color: #228b22;">NSString</span> * <span style="color: #a020f0;">const</span> <span style="color: #a0522d;">RNFooDidCompleteNotification</span>;
+<span style="color: #b22222;">// </span><span style="color: #b22222;">&#19968;&#20010;&#21487;&#21464;&#30340;&#25351;&#38024;&#65292;&#25351;&#21521;&#19968;&#20010;immutable string</span>
+<span style="color: #a020f0;">extern</span> <span style="color: #a020f0;">const</span> <span style="color: #228b22;">NSString</span> * <span style="color: #a0522d;">RNFooDidCompleteNotification</span>;
+</pre>
+
+<ul>
+<li>可以observe一个指定的object，或者是nil（任何object）。如果observe一个指定的object，一般需要将这个object retain在一个ivar里。observe并不进行retain操作，导致这个object可能别deallocate。
+</li>
+<li>observe一个property的例子，这个object是一个ivar
+</li>
+</ul>
+
+
+
+
+<pre class="src src-C">- (<span style="color: #228b22;">void</span>)setPoster:(<span style="color: #228b22;">Poster</span>*)aPoster
+{
+  <span style="color: #228b22;">NSNotificationCenter</span> *<span style="color: #a0522d;">nc</span> = [NSNotificationCenter defaultCenter];
+  <span style="color: #a020f0;">if</span> (poster_ != nil) {
+    <span style="color: #b22222;">// </span><span style="color: #b22222;">remove all observations for the old values</span>
+    [nc removeObserver:self name:nil object:poster_];
+  }
+  poster_ = aPoster;
+  <span style="color: #a020f0;">if</span> (poster_ != nil) {
+    <span style="color: #b22222;">// </span><span style="color: #b22222;">add the new observation</span>
+    [nc addObserver:self selector:@selector(anEventDidHappen:) name:PosterDidSomething Notification object:poster_];
+  }
+}
+</pre>
+
+<ul>
+<li>不使用observe specific instance的情况
+<ul>
+<li>不关心哪个object发出了notification
+</li>
+<li>当开始observing notification的时候这个object可能已经不存在，或者会随时间改变。
+</li>
+</ul>
+
+</li>
+<li>NSNotificationCenter效率：当一个notification发出的时候，NSNotificationCenter会搜索所有注册的observers，所好的时间和所有注册的observation成正比。当注册这个observation的object到达100多个时，就会影响效率。同样的 <code>removeObserver:</code> 也和注册的observation的个数有关。
+</li>
+<li>如果需要针对很多object observe同一个notification，但是并不是每一个object需要响应这个notification。比较好的方法就是讲observe的object设置成nil，并且在callback中检查。
+</li>
+</ul>
+
+
+
+
+<pre class="src src-C"><span style="color: #b22222;">// </span><span style="color: #b22222;">Observe all objects, whether in your tracklist or not</span>
+[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(trackDidChange:) name:TrackDidChangeNotification object:nil];
+...
+- (<span style="color: #228b22;">void</span>)trackDidChange:(<span style="color: #228b22;">NSNotification</span> *)note {
+  <span style="color: #b22222;">// </span><span style="color: #b22222;">verify that you cared about this track</span>
+  <span style="color: #a020f0;">if</span> ([self.tracks containsObject:[note object]]) {
+    ...
+  }
+}
+</pre>
+
+<ul>
+<li>Post notification是同步的。当你调用 =postNotification:=，在返回之前所有的observers被调用了一次，但不保证顺序。
+</li>
+</ul>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1-5" class="outline-3">
+<h3 id="sec-1-5"><span class="section-number-3">1.5</span> Singleton Pattern</h3>
+<div class="outline-text-3" id="text-1-5">
+
+
+</div>
+
+<div id="outline-container-1-5-1" class="outline-4">
+<h4 id="sec-1-5-1"><span class="section-number-4">1.5.1</span> 可以作为一个全局变量</h4>
+<div class="outline-text-4" id="text-1-5-1">
+
+<ul>
+<li>一般以 <code>shared</code> 开头，例如 <code>+sharedAccelerometer</code> , <code>+sharedApplication</code> 。也有其他的情况，例如 <code>+[NSNotification defaultCenter]</code> , <code>+[NSUserDefaults standardUserDefaults]</code> 。
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-1-5-2" class="outline-4">
+<h4 id="sec-1-5-2"><span class="section-number-4">1.5.2</span> 一般情况下使用shared singleton 而不是 strict singleton</h4>
+<div class="outline-text-4" id="text-1-5-2">
+
+
+
+
+<pre class="src src-C"><span style="color: #a020f0;">static</span> <span style="color: #228b22;">Singleton</span> *<span style="color: #a0522d;">sSingleton</span>;
+@implementation Singleton
++ (<span style="color: #228b22;">void</span>)initialize {
+  NSAssert(self == [Singleton class], @<span style="color: #8b2252;">"Singleton is not designed to be subclassed."</span>);
+  sSingleton = [Singleton new];
+}
++ (<span style="color: #228b22;">Singleton</span>*)sharedSingleton {
+  <span style="color: #a020f0;">return</span> sSingleton;
+}
+@end
+</pre>
+
+<ul>
+<li>每个class都会自动调用一次 <code>+initialize</code> ，所以是线程安全的
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-1-5-3" class="outline-4">
+<h4 id="sec-1-5-3"><span class="section-number-4">1.5.3</span> 可以继承Singleton，但是不建议这么做。</h4>
+<div class="outline-text-4" id="text-1-5-3">
+
+<ul>
+<li>可以通过使用delegate自定义一个新的singleton。
+</li>
+<li>将会变动的逻辑写入一个分开的class中，把它设置成这个singleton的一个delegate。
+</li>
+<li>如果需要在运行期改变这个singleton instance，可以提供一个 <code>+setSharedSingleton:</code> 方法。注意，下面的方法不是线程安全的。
+</li>
+</ul>
+
+
+
+
+<pre class="src src-C">+ (<span style="color: #228b22;">void</span>)setSharedSingleton:(<span style="color: #228b22;">Singleton</span> *)aSingleton {
+  sSingleton = aSingleton;
+}
+</pre>
+
+</div>
+
+</div>
+
+<div id="outline-container-1-5-4" class="outline-4">
+<h4 id="sec-1-5-4"><span class="section-number-4">1.5.4</span> 利用singleton存储全局变量</h4>
+<div class="outline-text-4" id="text-1-5-4">
+
+
+
+
+<pre class="src src-C"><span style="color: #228b22;">Something</span> *<span style="color: #a0522d;">something</span> = [Something sharedSomething];
+</pre>
+
 </div>
 </div>
 </div>
@@ -560,7 +797,7 @@ id observerManager = [[RNObserverManager alloc] initWithProtocol:@protocol(MyPro
 </div>
 
 <div id="postamble">
-<p class="date">Date: 2013-06-09 00:55:20 CST</p>
+<p class="date">Date: 2013-06-10 15:33:44 CST</p>
 <p class="author">Author: Yifeng Li</p>
 <p class="creator">Org version 7.8.11 with Emacs version 24</p>
 <a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>

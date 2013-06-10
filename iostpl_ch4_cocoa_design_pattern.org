@@ -206,3 +206,107 @@ id observerManager = [[RNObserverManager alloc] initWithProtocol:@protocol(MyPro
 @end
 #+END_SRC
 + =forwardInvocation:= 能够透明地合并消息、增加log、传递消息至别的机器、等等。
+
+** Observer Pattern
+*** Cocoa中的Observer Pattern包含NSNotification，delegate observations，和KVO。
+*** NSNotification
++ example
+#+BEGIN_SRC C
+// Poster.h
+// define a string constant for the notification
+extern NSString * const PosterDidSomethingNotification;
+
+// Poster.m
+NSString * const PosterDidSomethingNotification = @"PosterDidSomethingNotification";
+...
+// include the poster as the object in the notification
+[[NSNotificationCenter defaultCenter] postNotificationName:PosterDidSomethingNotification object:self];
+
+// Observer.m
+// import Poster.h to get the string constant
+#import "Poster.h"
+...
+//Register to receive a notification
+[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(posterDidSomething:) name:PosterDidSomethingNotification object:nil];
+...
+- (void)posterDidSomething:(NSNotification*)note {
+  // handle the notfication here
+}
+- (void)dealloc {
+  // Always remove your observations
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
+  [super dealloc];
+}
+#+END_SRC
++ 注意到notification的名字 =PosterDidSomethingNotification= ,它是以第二个参数object的类名开头，随后跟一个follow或者did。
+#+BEGIN_SRC C
+// 指向一个immutable string的常量指针
+// 比较好的记忆方法就是从右边往左读 const * NSString
+extern NSString * const RNFooDidCompleteNotification;
+// 一个可变的指针，指向一个immutable string
+extern const NSString * RNFooDidCompleteNotification;
+#+END_SRC
++ 可以observe一个指定的object，或者是nil（任何object）。如果observe一个指定的object，一般需要将这个object retain在一个ivar里。observe并不进行retain操作，导致这个object可能别deallocate。
++ observe一个property的例子，这个object是一个ivar
+#+BEGIN_SRC C
+- (void)setPoster:(Poster*)aPoster
+{
+  NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
+  if (poster_ != nil) {
+    // remove all observations for the old values
+    [nc removeObserver:self name:nil object:poster_];
+  }
+  poster_ = aPoster;
+  if (poster_ != nil) {
+    // add the new observation
+    [nc addObserver:self selector:@selector(anEventDidHappen:) name:PosterDidSomething Notification object:poster_];
+  }
+}
+#+END_SRC
++ 不使用observe specific instance的情况
+  - 不关心哪个object发出了notification
+  - 当开始observing notification的时候这个object可能已经不存在，或者会随时间改变。
++ NSNotificationCenter效率：当一个notification发出的时候，NSNotificationCenter会搜索所有注册的observers，所好的时间和所有注册的observation成正比。当注册这个observation的object到达100多个时，就会影响效率。同样的 =removeObserver:= 也和注册的observation的个数有关。
++ 如果需要针对很多object observe同一个notification，但是并不是每一个object需要响应这个notification。比较好的方法就是讲observe的object设置成nil，并且在callback中检查。
+#+BEGIN_SRC C
+// Observe all objects, whether in your tracklist or not
+[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(trackDidChange:) name:TrackDidChangeNotification object:nil];
+...
+- (void)trackDidChange:(NSNotification *)note {
+  // verify that you cared about this track
+  if ([self.tracks containsObject:[note object]]) {
+    ...
+  }
+}
+#+END_SRC
++ Post notification是同步的。当你调用 =postNotification:=，在返回之前所有的observers被调用了一次，但不保证顺序。
+** Singleton Pattern
+*** 可以作为一个全局变量
++ 一般以 =shared= 开头，例如 =+sharedAccelerometer= , =+sharedApplication= 。也有其他的情况，例如 =+[NSNotification defaultCenter]= , =+[NSUserDefaults standardUserDefaults]= 。
+*** 一般情况下使用shared singleton 而不是 strict singleton
+#+BEGIN_SRC C
+static Singleton *sSingleton;
+@implementation Singleton
++ (void)initialize {
+  NSAssert(self == [Singleton class], @"Singleton is not designed to be subclassed.");
+  sSingleton = [Singleton new];
+}
++ (Singleton*)sharedSingleton {
+  return sSingleton;
+}
+@end
+#+END_SRC
++ 每个class都会自动调用一次 =+initialize= ，所以是线程安全的
+*** 可以继承Singleton，但是不建议这么做。
++ 可以通过使用delegate自定义一个新的singleton。
++ 将会变动的逻辑写入一个分开的class中，把它设置成这个singleton的一个delegate。
++ 如果需要在运行期改变这个singleton instance，可以提供一个 =+setSharedSingleton:= 方法。注意，下面的方法不是线程安全的。
+#+BEGIN_SRC C
++ (void)setSharedSingleton:(Singleton *)aSingleton {
+  sSingleton = aSingleton;
+}
+#+END_SRC
+*** 利用singleton存储全局变量
+#+BEGIN_SRC C
+Something *something = [Something sharedSomething];
+#+END_SRC
