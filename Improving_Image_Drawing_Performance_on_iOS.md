@@ -35,30 +35,30 @@ imageView.image = image;
 ```objective-c
 - (UIImage*)resizeImage:(UIImage*)image toWidth:(NSInteger)width height:(NSInteger)height
 {
-    // Create a graphics context with the target size
-    // On iOS 4 and later, use UIGraphicsBeginImageContextWithOptions to take the scale into consideration
-    // On iOS prior to 4, fall back to use UIGraphicsBeginImageContext
-    CGSize size = CGSizeMake(width, height);
-    if (NULL != UIGraphicsBeginImageContextWithOptions)
-        UIGraphicsBeginImageContextWithOptions(size, NO, 0);
-    else
-        UIGraphicsBeginImageContext(size);
+	 // Create a graphics context with the target size
+     // On iOS 4 and later, use UIGraphicsBeginImageContextWithOptions to take the scale into consideration
+     // On iOS prior to 4, fall back to use UIGraphicsBeginImageContext
+     CGSize size = CGSizeMake(width, height);
+     if (NULL != UIGraphicsBeginImageContextWithOptions)
+         UIGraphicsBeginImageContextWithOptions(size, NO, 0);
+     else
+         UIGraphicsBeginImageContext(size);
 
-    CGContextRef context = UIGraphicsGetCurrentContext();
+     CGContextRef context = UIGraphicsGetCurrentContext();
 
-    // Flip the context because UIKit coordinate system is upside down to Quartz coordinate system
-    CGContextTranslateCTM(context, 0.0, height);
-    CGContextScaleCTM(context, 1.0, -1.0);
+     // Flip the context because UIKit coordinate system is upside down to Quartz coordinate system
+     CGContextTranslateCTM(context, 0.0, height);
+     CGContextScaleCTM(context, 1.0, -1.0);
 
-    // Draw the original image to the context
-    CGContextSetBlendMode(context, kCGBlendModeCopy);
-    CGContextDrawImage(context, CGRectMake(0.0, 0.0, width, height), image.CGImage);
+     // Draw the original image to the context
+     CGContextSetBlendMode(context, kCGBlendModeCopy);
+     CGContextDrawImage(context, CGRectMake(0.0, 0.0, width, height), image.CGImage);
 
-    // Retrieve the UIImage from the current context
-    UIImage *imageOut = UIGraphicsGetImageFromCurrentImageContext();
+     // Retrieve the UIImage from the current context
+     UIImage *imageOut = UIGraphicsGetImageFromCurrentImageContext();
 
-    UIGraphicsEndImageContext();
+     UIGraphicsEndImageContext();
 
-    return imageOut;
+     return imageOut;
 }
 ```
