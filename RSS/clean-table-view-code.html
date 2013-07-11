@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+               "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Clean table view code</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+<meta name="title" content="Clean table view code"/>
+<meta name="generator" content="Org-mode"/>
+<meta name="generated" content="2013-07-08 15:49:50 CST"/>
+<meta name="author" content="Yifeng Li"/>
+<meta name="description" content=""/>
+<meta name="keywords" content=""/>
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  html { font-family: Times, serif; font-size: 12pt; }
+  .title  { text-align: center; }
+  .todo   { color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #add8e6; font-weight:normal }
+  .target { }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  {margin-left:auto; margin-right:0px;  text-align:right;}
+  .left   {margin-left:0px;  margin-right:auto; text-align:left;}
+  .center {margin-left:auto; margin-right:auto; text-align:center;}
+  p.verse { margin-left: 3% }
+  pre {
+	border: 1pt solid #AEBDCC;
+	background-color: #F3F5F7;
+	padding: 5pt;
+	font-family: courier, monospace;
+        font-size: 90%;
+        overflow:auto;
+  }
+  table { border-collapse: collapse; }
+  td, th { vertical-align: top;  }
+  th.right  { text-align:center;  }
+  th.left   { text-align:center;   }
+  th.center { text-align:center; }
+  td.right  { text-align:right;  }
+  td.left   { text-align:left;   }
+  td.center { text-align:center; }
+  dt { font-weight: bold; }
+  div.figure { padding: 0.5em; }
+  div.figure p { text-align: center; }
+  div.inlinetask {
+    padding:10px;
+    border:2px solid gray;
+    margin:10px;
+    background: #ffffcc;
+  }
+  textarea { overflow-x: auto; }
+  .linenr { font-size:smaller }
+  .code-highlighted {background-color:#ffff00;}
+  .org-info-js_info-navigation { border-style:none; }
+  #org-info-js_console-label { font-size:10px; font-weight:bold;
+                               white-space:nowrap; }
+  .org-info-js_search-highlight {background-color:#ffff00; color:#000000;
+                                 font-weight:bold; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+
+</head>
+<body>
+
+<div id="preamble">
+
+</div>
+
+<div id="content">
+<h1 class="title">Clean table view code</h1>
+
+<p>原文:<a href="http://www.objc.io/issue-1/table-views.html">http://www.objc.io/issue-1/table-views.html</a>
+</p>
+
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1 UITableViewController</a>
+<ul>
+<li><a href="#sec-1-1">1.1 优点</a></li>
+<li><a href="#sec-1-2">1.2 限制</a></li>
+</ul>
+</li>
+<li><a href="#sec-2">2 分离接口(Model和Cell的桥接）</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> UITableViewController</h2>
+<div class="outline-text-2" id="text-1">
+
+
+</div>
+
+<div id="outline-container-1-1" class="outline-3">
+<h3 id="sec-1-1"><span class="section-number-3">1.1</span> 优点</h3>
+<div class="outline-text-3" id="text-1-1">
+
+<ul>
+<li>第一时间读取tableview的数据
+</li>
+<li>触发tableview的编辑模式，给键盘事件反馈，清除选择等一些小任务
+</li>
+<li>支持UIRefreshControl
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-1-2" class="outline-3">
+<h3 id="sec-1-2"><span class="section-number-3">1.2</span> 限制</h3>
+<div class="outline-text-3" id="text-1-2">
+
+<ul>
+<li>controller的view只能设置为table view
+</li>
+<li>如果使用storyboard，切换至传统view controller需要比较大的精力
+</li>
+</ul>
+
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> 分离接口(Model和Cell的桥接）</h2>
+<div class="outline-text-2" id="text-2">
+
+<ul>
+<li>可以把 <code>cellForRowAtIndexPath</code> 分离到一个cell的category
+</li>
+</ul>
+
+
+
+
+<pre class="src src-C">@implementation PhotoCell (ConfigureForPhoto)
+- (<span style="color: #228b22;">void</span>)configureForPhoto:(<span style="color: #228b22;">Photo</span> *)photo
+{
+    self.photoTitleLabel.text = photo.name;
+    <span style="color: #228b22;">NSString</span>* <span style="color: #a0522d;">date</span> = [self.dateFormatter stringFromDate:photo.creationDate];
+    self.photoDateLabel.text = date;
+}
+@end
+
+<span style="color: #b22222;">// </span><span style="color: #b22222;">Data Source</span>
+- (<span style="color: #228b22;">UITableViewCell</span> *)tableView:(<span style="color: #228b22;">UITableView</span> *)<span style="color: #228b22;">tableView</span>
+         <span style="color: #0000ff;">cellForRowAtIndexPath</span>:(<span style="color: #228b22;">NSIndexPath</span> *)indexPath
+{
+    <span style="color: #228b22;">PhotoCell</span> *<span style="color: #a0522d;">cell</span> = [tableView dequeueReusableCellWithIdentifier:PhotoCellIdentifier];
+    [cell configureForPhoto:[self itemAtIndexPath:indexPath]];
+}
+<span style="color: #b22222;">// </span><span style="color: #b22222;">&#20998;&#31163;&#30340;datasource&#31867;&#20013;&#21487;&#20197;&#36825;&#20040;&#20351;&#29992;</span>
+<span style="color: #228b22;">TableViewCellConfigureBlock</span> <span style="color: #a0522d;">block</span> = ^(PhotoCell *cell, Photo *photo) {
+    [cell configureForPhoto:photo];
+};
+</pre>
+
+
+<ul>
+<li>在cell中处理cell的状态
+</li>
+</ul>
+
+<p><code>tableView:didHighlightRowAtIndexPath</code> 可以用 <code>UITableViewCell</code> 的 <code>setHighlighted:</code> 取代
+</p>
+<ul>
+<li>处理多种cell type
+</li>
+<li>tableview editing 应该触发model层的修改
+</li>
+</ul>
+
+</div>
+</div>
+</div>
+
+<div id="postamble">
+<p class="date">Date: 2013-07-08 15:49:50 CST</p>
+<p class="author">Author: Yifeng Li</p>
+<p class="creator">Org version 7.8.11 with Emacs version 24</p>
+<a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,209 @@
+* 序
++ ARM
+RISC指令集(Reduced Instruction Set Computing)
++ =mov=
+第一个参数为目的地址
+
+e.g.
+
+=mov ro, #42=
+* 寄存器
+ARM一共有16个寄存器，每一个寄存器都有32位
+** r0 - r3
+保存传递给函数的参数
+** r4 - r11
+保存函数的本地变量
+** r12
+内部过程调用暂时寄存器(intra-procedure-call scratch register)
+** r13
+栈指针，保存着指向栈顶部的指针
+** r14
+链接寄存器，当从当前函数返回时的下一个指令地址
+** r15
+程序计数器，当前执行的指令个数
+
+* XCode编译
++ XCode4 :: Product/Generate output/Assembly File
++ XCode5 :: Product/Perform Action/Assemble main.m
++ scheme :: 根据scheme，如果是release模式，则会有编译优化
+
+* 编译语言
++ 以@开头的为注释
++ 以:结尾的为label
+++ 一般在函数名之前加一下划线
+++ 别的label是以L开头，表明是本地（local）的label
++ 以.开头的不是汇编指令，是给汇编器自己看的命令
+
+* 例子
+#+BEGIN_SRC C
+_addFunction:
+@ 1:
+	sub	sp, #12
+@ 2:
+	str	r0, [sp, #8]
+	str	r1, [sp, #4]
+@ 3:
+	ldr	r0, [sp, #8]
+	ldr	r1, [sp, #4]
+@ 4:
+	add	r0, r1
+@ 5:
+	str	r0, [sp]
+	ldr	r0, [sp]
+@ 6:
+	add	sp, #12
+@ 7:
+	bx	lr
+#+END_SRC
+1. 栈上的空间是用来存储任何临时的变量，这里新建了12bytes用作临时变量，所以减去了12bytes
+2. =r0= 和 =r1= 保存传给函数的值
+   + 如果有四个值，则要用到 =r2= 和 =r3=
+   + 如果超过四个值，或者不适用于32位寄存器的（例如大的数据结构），则通过stack传参
+   + =str= 保存寄存器的值到内存(store register)
+3. =ldr= 从内存中读取值到寄存器(load register)
+   + 这两行的确是冗余的
+4. 把 =ro= + =r1= 的结果保存到 =r0= 中
+   + 也可以用三个参数： =add r0, r0, r1= 和 =add r0, r1= 功能相同
+5. 编译出来的冗余代码
+6. 执行完了所有指令，函数即将结束，返回栈指针的初始位置
+7. bx指令回调到调用函数的地方
+   + =lr= = link register, 存储着下一条指令的地址。
+   + 函数的返回值一般都是 =r0= 保有，除非不能保存到一个寄存器中
+8. DEBUG模式生成的是未被优化的代码，可以选archiving获得RELEASE的编译代码
+
+* 函数调用
+#+BEGIN_SRC C
+__attribute__((noinline))         // 防止编译时自动inline
+int addFunction(int a, int b) {
+    int c = a + b;
+    return c;
+}
+void fooFunction() {
+    int add = addFunction(12, 44);
+    printf("add = %i", add);
+}
+#+END_SRC
+#+BEGIN_SRC C
+_fooFunction:
+@ 1:
+	push	{r7, lr}
+@ 2:
+	movs	r0, #12
+	movs	r1, #34
+@ 3:
+	mov	r7, sp
+@ 4:
+	bl	_addFunction
+@ 5:
+	mov	r1, r0
+@ 6:
+	movw	r0, :lower16:(L_.str-(LPC1_0+4))
+	movt	r0, :upper16:(L_.str-(LPC1_0+4))
+LPC1_0:
+	add	r0, pc
+@ 7:
+	blx	_printf
+@ 8:
+	pop	{r7, pc}
+#+END_SRC
+1. =r7= 和 =lr= push到栈上，栈指针减少了8
+   + =r7= 被保存起来，因为在程序中会用到
+   + =lr= 会出现在程序的结尾
+2. =movs= =mov.w=
+3. 调用函数时，需要把栈指针保存起来，在这里是冗余的
+4. =bl= (branch with link)调用函数 =_addFunction= ，进入到新的函数的分支，将 =lr= 设置为下一条指令的地址
+   + =bl= 不同于 =b= ,在调用之前，=lr= 已经江夏一个指令设置为当前的函数。
+5. 作为 =printf= 的第二个参数，把刚返回的 =r0= 放到 =r1= 中
+6. =printf= 的第一个参数是一个 =string=
+   + =string= 存储在 =data segment=
+   + link之前是不知道这个 =string= 的地址的
+   + 前两个指令作用是装载这个敞亮的地址
+   + 将 =pc= 的值加到 =r0= 中。
+7. 执行 =_printf=
+   + =blx= 与 =bl= 区别在于x(exchage)，处理器会切换模式
+   + ARM有两种模式：ARM(32位)和Thumb（16位)
+8. pop, =lr= 的值传递给 =pc=
+#+BEGIN_SRC C
+mov r0, r1 => r0 = r1
+mov r0, #10 => r0 = 10
+ldr r0, [sp] => r0 = *sp
+str r0, [sp] => *sp = r0
+add r0, r1, r2 => r0 = r1 + r2
+add r0, r1 => r0 = r0 + r1
+push {r0, r1, r2} => Push r0, r1 and r2 onto the stack.
+pop {r0, r1, r2} => Pop three values off the stack, putting them into r0, r1 and r2.
+b _label => pc = _label
+bl _label => lr = pc + 4; pc = _label
+#+END_SRC
+
+* OBJC汇编
+#+BEGIN_SRC C
+- (int)addValue:(int)a toValue:(int)b {
+    int c = a + b;
+    return c;
+}
+#+END_SRC
+#+BEGIN_SRC C
+"-[ViewController addValue:toValue:]":
+	adds	r0, r3, r2
+	bx	lr
+#+END_SRC
++ 参数的寄存器是 =r2= , =r3= 而不是 =r0= , =r1=
++ 这是由于OBJC调用函数时还包含两个隐式的参数
+#+BEGIN_SRC C
+int ViewController_addValue_toValue(id self, SEL _cmd, int a, int b) {
+    int c = a + b;
+    return c;
+}
+#+END_SRC
++ 调用函数
+#+BEGIN_SRC C
+- (void)foo {
+    int add = [self addValue:12 toValue:34];
+    NSLog(@"add = %i", add);
+}
+#+END_SRC
+#BEGIN_SRC C
+"-[ViewController foo]":
+@ 1:
+	push	{r7, lr}
+@ 2:
+	movw	r1, :lower16:(L_OBJC_SELECTOR_REFERENCES_-(LPC1_0+4))
+	movt	r1, :upper16:(L_OBJC_SELECTOR_REFERENCES_-(LPC1_0+4))
+LPC1_0:
+	add	r1, pc
+@ 3:
+	ldr	r1, [r1]
+@ 4:
+	movs	r2, #12
+	movs	r3, #34
+@ 5:
+	mov	r7, sp
+@ 6:
+	blx	_objc_msgSend
+@ 7:
+	mov	r1, r0
+@ 8:
+	movw	r0, :lower16:(L__unnamed_cfstring_-(LPC1_1+4))
+	movt	r0, :upper16:(L__unnamed_cfstring_-(LPC1_1+4))
+LPC1_1:
+	add	r0, pc
+@ 9:
+	blx	_NSLog
+@ 10:
+	pop	{r7, pc}
+#+END_SRC
+1. push
+2. 把标签 =L_OBJC_SELECTOR_REFERENCES_ 读取到 =r1=
+3. =r1= 指向的内容是字符串 ="addValue:toValue:"= ，表示 =selector=
+4. 读取 =r2= 和 =r3=
+5. 保存栈指针
+6. 调用函数 =objc-msgSend= 分支
+7. 把返回值赋给 =r1= ，作为 =NSLog= 的参数
+8. 读取 =NSLog= 的第一个string参数为r0
+9. 调用 =NSLog= 分支
+10. pop
+
+* objc_sendMsg
++ 返回值是id，可以转换为int，因为它们大小相同
++ 如果返回一个不同大小的结果，将会调用另一个方法

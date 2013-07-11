@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+               "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Lighter View Controller</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+<meta name="title" content="Lighter View Controller"/>
+<meta name="generator" content="Org-mode"/>
+<meta name="generated" content="2013-07-08 11:40:40 CST"/>
+<meta name="author" content="Yifeng Li"/>
+<meta name="description" content=""/>
+<meta name="keywords" content=""/>
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  html { font-family: Times, serif; font-size: 12pt; }
+  .title  { text-align: center; }
+  .todo   { color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #add8e6; font-weight:normal }
+  .target { }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  {margin-left:auto; margin-right:0px;  text-align:right;}
+  .left   {margin-left:0px;  margin-right:auto; text-align:left;}
+  .center {margin-left:auto; margin-right:auto; text-align:center;}
+  p.verse { margin-left: 3% }
+  pre {
+	border: 1pt solid #AEBDCC;
+	background-color: #F3F5F7;
+	padding: 5pt;
+	font-family: courier, monospace;
+        font-size: 90%;
+        overflow:auto;
+  }
+  table { border-collapse: collapse; }
+  td, th { vertical-align: top;  }
+  th.right  { text-align:center;  }
+  th.left   { text-align:center;   }
+  th.center { text-align:center; }
+  td.right  { text-align:right;  }
+  td.left   { text-align:left;   }
+  td.center { text-align:center; }
+  dt { font-weight: bold; }
+  div.figure { padding: 0.5em; }
+  div.figure p { text-align: center; }
+  div.inlinetask {
+    padding:10px;
+    border:2px solid gray;
+    margin:10px;
+    background: #ffffcc;
+  }
+  textarea { overflow-x: auto; }
+  .linenr { font-size:smaller }
+  .code-highlighted {background-color:#ffff00;}
+  .org-info-js_info-navigation { border-style:none; }
+  #org-info-js_console-label { font-size:10px; font-weight:bold;
+                               white-space:nowrap; }
+  .org-info-js_search-highlight {background-color:#ffff00; color:#000000;
+                                 font-weight:bold; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+
+</head>
+<body>
+
+<div id="preamble">
+
+</div>
+
+<div id="content">
+<h1 class="title">Lighter View Controller</h1>
+
+<p>原文:<a href="http://www.objc.io/issue-1/lighter-view-controllers.html">http://www.objc.io/issue-1/lighter-view-controllers.html</a>
+</p>
+
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1 分离data source和其他protocols</a></li>
+<li><a href="#sec-2">2 将业务逻辑移动至Model层</a></li>
+<li><a href="#sec-3">3 创建Store类，专注于数据的加载、缓存，以及对数据库进行配置，用作service layer</a></li>
+<li><a href="#sec-4">4 web service逻辑移动至Model层</a></li>
+<li><a href="#sec-5">5 将view代码移动至View层</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> 分离data source和其他protocols</h2>
+<div class="outline-text-2" id="text-1">
+
+
+
+
+<pre class="src src-C">@implementation ArrayDataSource
+- (<span style="color: #228b22;">id</span>)itemAtIndexPath:(<span style="color: #228b22;">NSIndexPath</span>*)indexPath {
+  <span style="color: #a020f0;">return</span> items[(<span style="color: #228b22;">NSUInteger</span>)indexPath.row];
+}
+- (<span style="color: #228b22;">NSInteger</span>)tableView:(<span style="color: #228b22;">UITableView</span>*)<span style="color: #228b22;">tableView</span>
+ <span style="color: #0000ff;">numberOfRowsInSection</span>:(<span style="color: #228b22;">NSInteger</span>)section {
+  <span style="color: #a020f0;">return</span> items.count;
+}
+
+- (<span style="color: #228b22;">UITableViewCell</span>*)tableView:(<span style="color: #228b22;">UITableView</span>*)<span style="color: #228b22;">tableView</span>
+        <span style="color: #0000ff;">cellForRowAtIndexPath</span>:(<span style="color: #228b22;">NSIndexPath</span>*)indexPath {
+  <span style="color: #228b22;">id</span> <span style="color: #a0522d;">cell</span> = [tableView dequeueReusableCellWithIdentifier:cellIdentifier
+                                            forIndexPath:indexPath];
+  <span style="color: #228b22;">id</span> <span style="color: #a0522d;">item</span> = [self itemAtIndexPath:indexPath];
+  configureCellBlock(cell,item);
+  <span style="color: #a020f0;">return</span> cell;
+}
+@end
+
+<span style="color: #228b22;">void</span> (^configureCell)(<span style="color: #228b22;">PhotoCell</span>*, <span style="color: #228b22;">Photo</span>*) = ^(PhotoCell* cell, Photo* photo) {
+  cell.label.text = photo.name;
+};
+photosArrayDataSource = [[ArrayDataSource alloc] initWithItems:photos
+                                                cellIdentifier:PhotoCellIdentifier
+                                            configureCellBlock:configureCell];
+self.tableView.dataSource = photosArrayDataSource;
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> 将业务逻辑移动至Model层</h2>
+<div class="outline-text-2" id="text-2">
+
+
+</div>
+
+</div>
+
+<div id="outline-container-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> 创建Store类，专注于数据的加载、缓存，以及对数据库进行配置，用作service layer</h2>
+<div class="outline-text-2" id="text-3">
+
+
+</div>
+
+</div>
+
+<div id="outline-container-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> web service逻辑移动至Model层</h2>
+<div class="outline-text-2" id="text-4">
+
+
+</div>
+
+</div>
+
+<div id="outline-container-5" class="outline-2">
+<h2 id="sec-5"><span class="section-number-2">5</span> 将view代码移动至View层</h2>
+<div class="outline-text-2" id="text-5">
+
+</div>
+</div>
+</div>
+
+<div id="postamble">
+<p class="date">Date: 2013-07-08 11:40:40 CST</p>
+<p class="author">Author: Yifeng Li</p>
+<p class="creator">Org version 7.8.11 with Emacs version 24</p>
+<a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>
+
+</div>
+</body>
+</html>

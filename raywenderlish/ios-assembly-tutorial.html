@@ -1,0 +1,487 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+               "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>ios-assembly-tutorial</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+<meta name="title" content="ios-assembly-tutorial"/>
+<meta name="generator" content="Org-mode"/>
+<meta name="generated" content="2013-06-24 16:09:42 CST"/>
+<meta name="author" content="Yifeng Li"/>
+<meta name="description" content=""/>
+<meta name="keywords" content=""/>
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  html { font-family: Times, serif; font-size: 12pt; }
+  .title  { text-align: center; }
+  .todo   { color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #add8e6; font-weight:normal }
+  .target { }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  {margin-left:auto; margin-right:0px;  text-align:right;}
+  .left   {margin-left:0px;  margin-right:auto; text-align:left;}
+  .center {margin-left:auto; margin-right:auto; text-align:center;}
+  p.verse { margin-left: 3% }
+  pre {
+	border: 1pt solid #AEBDCC;
+	background-color: #F3F5F7;
+	padding: 5pt;
+	font-family: courier, monospace;
+        font-size: 90%;
+        overflow:auto;
+  }
+  table { border-collapse: collapse; }
+  td, th { vertical-align: top;  }
+  th.right  { text-align:center;  }
+  th.left   { text-align:center;   }
+  th.center { text-align:center; }
+  td.right  { text-align:right;  }
+  td.left   { text-align:left;   }
+  td.center { text-align:center; }
+  dt { font-weight: bold; }
+  div.figure { padding: 0.5em; }
+  div.figure p { text-align: center; }
+  div.inlinetask {
+    padding:10px;
+    border:2px solid gray;
+    margin:10px;
+    background: #ffffcc;
+  }
+  textarea { overflow-x: auto; }
+  .linenr { font-size:smaller }
+  .code-highlighted {background-color:#ffff00;}
+  .org-info-js_info-navigation { border-style:none; }
+  #org-info-js_console-label { font-size:10px; font-weight:bold;
+                               white-space:nowrap; }
+  .org-info-js_search-highlight {background-color:#ffff00; color:#000000;
+                                 font-weight:bold; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+
+</head>
+<body>
+
+<div id="preamble">
+
+</div>
+
+<div id="content">
+<h1 class="title">ios-assembly-tutorial</h1>
+
+
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1 序</a></li>
+<li><a href="#sec-2">2 寄存器</a>
+<ul>
+<li><a href="#sec-2-1">2.1 r0 - r3</a></li>
+<li><a href="#sec-2-2">2.2 r4 - r11</a></li>
+<li><a href="#sec-2-3">2.3 r12</a></li>
+<li><a href="#sec-2-4">2.4 r13</a></li>
+<li><a href="#sec-2-5">2.5 r14</a></li>
+<li><a href="#sec-2-6">2.6 r15</a></li>
+</ul>
+</li>
+<li><a href="#sec-3">3 XCode编译</a></li>
+<li><a href="#sec-4">4 编译语言</a></li>
+<li><a href="#sec-5">5 例子</a></li>
+<li><a href="#sec-6">6 函数调用</a></li>
+<li><a href="#sec-7">7 OBJC汇编</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> 序</h2>
+<div class="outline-text-2" id="text-1">
+
+<ul>
+<li>ARM
+</li>
+</ul>
+
+<p>RISC指令集(Reduced Instruction Set Computing)
+</p><ul>
+<li><code>mov</code>
+</li>
+</ul>
+
+<p>第一个参数为目的地址
+</p>
+<p>
+e.g.
+</p>
+<p>
+<code>mov ro, #42</code>
+</p></div>
+
+</div>
+
+<div id="outline-container-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> 寄存器</h2>
+<div class="outline-text-2" id="text-2">
+
+<p>ARM一共有16个寄存器，每一个寄存器都有32位
+</p>
+</div>
+
+<div id="outline-container-2-1" class="outline-3">
+<h3 id="sec-2-1"><span class="section-number-3">2.1</span> r0 - r3</h3>
+<div class="outline-text-3" id="text-2-1">
+
+<p>保存传递给函数的参数
+</p></div>
+
+</div>
+
+<div id="outline-container-2-2" class="outline-3">
+<h3 id="sec-2-2"><span class="section-number-3">2.2</span> r4 - r11</h3>
+<div class="outline-text-3" id="text-2-2">
+
+<p>保存函数的本地变量
+</p></div>
+
+</div>
+
+<div id="outline-container-2-3" class="outline-3">
+<h3 id="sec-2-3"><span class="section-number-3">2.3</span> r12</h3>
+<div class="outline-text-3" id="text-2-3">
+
+<p>内部过程调用暂时寄存器(intra-procedure-call scratch register)
+</p></div>
+
+</div>
+
+<div id="outline-container-2-4" class="outline-3">
+<h3 id="sec-2-4"><span class="section-number-3">2.4</span> r13</h3>
+<div class="outline-text-3" id="text-2-4">
+
+<p>栈指针，保存着指向栈顶部的指针
+</p></div>
+
+</div>
+
+<div id="outline-container-2-5" class="outline-3">
+<h3 id="sec-2-5"><span class="section-number-3">2.5</span> r14</h3>
+<div class="outline-text-3" id="text-2-5">
+
+<p>链接寄存器，当从当前函数返回时的下一个指令地址
+</p></div>
+
+</div>
+
+<div id="outline-container-2-6" class="outline-3">
+<h3 id="sec-2-6"><span class="section-number-3">2.6</span> r15</h3>
+<div class="outline-text-3" id="text-2-6">
+
+<p>程序计数器，当前执行的指令个数
+</p>
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> XCode编译</h2>
+<div class="outline-text-2" id="text-3">
+
+<dl>
+<dt>XCode4</dt><dd>Product/Generate output/Assembly File
+</dd>
+<dt>XCode5</dt><dd>Product/Perform Action/Assemble main.m
+</dd>
+<dt>scheme</dt><dd>根据scheme，如果是release模式，则会有编译优化
+</dd>
+</dl>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> 编译语言</h2>
+<div class="outline-text-2" id="text-4">
+
+<ul>
+<li>以@开头的为注释
+</li>
+<li>以:结尾的为label
+</li>
+</ul>
+
+<p>++ 一般在函数名之前加一下划线
+++ 别的label是以L开头，表明是本地（local）的label
+</p><ul>
+<li>以.开头的不是汇编指令，是给汇编器自己看的命令
+</li>
+</ul>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-5" class="outline-2">
+<h2 id="sec-5"><span class="section-number-2">5</span> 例子</h2>
+<div class="outline-text-2" id="text-5">
+
+
+
+
+<pre class="src src-C"><span style="color: #008b8b;">_addFunction</span>:
+@ 1:
+        sub     sp, #12
+@ 2:
+        str     r0, [sp, #8]
+        str     r1, [sp, #4]
+@ 3:
+        ldr     r0, [sp, #8]
+        ldr     r1, [sp, #4]
+@ 4:
+        add     r0, r1
+@ 5:
+        str     r0, [sp]
+        ldr     r0, [sp]
+@ 6:
+        add     sp, #12
+@ 7:
+        bx      lr
+</pre>
+
+<ol>
+<li>栈上的空间是用来存储任何临时的变量，这里新建了12bytes用作临时变量，所以减去了12bytes
+</li>
+<li><code>r0</code> 和 <code>r1</code> 保存传给函数的值
+<ul>
+<li>如果有四个值，则要用到 <code>r2</code> 和 <code>r3</code>
+</li>
+<li>如果超过四个值，或者不适用于32位寄存器的（例如大的数据结构），则通过stack传参
+</li>
+<li><code>str</code> 保存寄存器的值到内存(store register)
+</li>
+</ul>
+
+</li>
+<li><code>ldr</code> 从内存中读取值到寄存器(load register)
+<ul>
+<li>这两行的确是冗余的
+</li>
+</ul>
+
+</li>
+<li>把 <code>ro</code> + <code>r1</code> 的结果保存到 <code>r0</code> 中
+<ul>
+<li>也可以用三个参数： <code>add r0, r0, r1</code> 和 <code>add r0, r1</code> 功能相同
+</li>
+</ul>
+
+</li>
+<li>编译出来的冗余代码
+</li>
+<li>执行完了所有指令，函数即将结束，返回栈指针的初始位置
+</li>
+<li>bx指令回调到调用函数的地方
+<ul>
+<li><code>lr</code> = link register, 存储着下一条指令的地址。
+</li>
+<li>函数的返回值一般都是 <code>r0</code> 保有，除非不能保存到一个寄存器中
+</li>
+</ul>
+
+</li>
+<li>DEBUG模式生成的是未被优化的代码，可以选archiving获得RELEASE的编译代码
+</li>
+</ol>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-6" class="outline-2">
+<h2 id="sec-6"><span class="section-number-2">6</span> 函数调用</h2>
+<div class="outline-text-2" id="text-6">
+
+
+
+
+<pre class="src src-C"><span style="color: #a020f0;">__attribute__</span>((noinline))         <span style="color: #b22222;">// </span><span style="color: #b22222;">&#38450;&#27490;&#32534;&#35793;&#26102;&#33258;&#21160;inline</span>
+<span style="color: #228b22;">int</span> <span style="color: #0000ff;">addFunction</span>(<span style="color: #228b22;">int</span> <span style="color: #a0522d;">a</span>, <span style="color: #228b22;">int</span> <span style="color: #a0522d;">b</span>) {
+    <span style="color: #228b22;">int</span> <span style="color: #a0522d;">c</span> = a + b;
+    <span style="color: #a020f0;">return</span> c;
+}
+<span style="color: #228b22;">void</span> <span style="color: #0000ff;">fooFunction</span>() {
+    <span style="color: #228b22;">int</span> <span style="color: #a0522d;">add</span> = addFunction(12, 44);
+    printf(<span style="color: #8b2252;">"add = %i"</span>, add);
+}
+</pre>
+
+
+<pre class="src src-C"><span style="color: #008b8b;">_fooFunction</span>:
+@ 1:
+        push    {r7, lr}
+@ 2:
+        movs    r0, #12
+        movs    r1, #34
+@ 3:
+        mov     r7, sp
+@ 4:
+        bl      _addFunction
+@ 5:
+        mov     r1, r0
+@ 6:
+        movw    r0, :lower16:(L_.str-(LPC1_0+4))
+        <span style="color: #228b22;">movt</span>    <span style="color: #a0522d;">r0</span>, :upper16:(L_.str-(LPC1_0+4))
+LPC1_0:
+        add     r0, pc
+@ 7:
+        blx     _printf
+@ 8:
+        pop     {r7, pc}
+</pre>
+
+<ol>
+<li><code>r7</code> 和 <code>lr</code> push到栈上，栈指针减少了8
+<ul>
+<li><code>r7</code> 被保存起来，因为在程序中会用到
+</li>
+<li><code>lr</code> 会出现在程序的结尾
+</li>
+</ul>
+
+</li>
+<li><code>movs</code> <code>mov.w</code>
+</li>
+<li>调用函数时，需要把栈指针保存起来，在这里是冗余的
+</li>
+<li><code>bl</code> (branch with link)调用函数 <code>_addFunction</code> ，进入到新的函数的分支，将 <code>lr</code> 设置为下一条指令的地址
+<ul>
+<li><code>bl</code> 不同于 <code>b</code> ,在调用之前，=lr= 已经江夏一个指令设置为当前的函数。
+</li>
+</ul>
+
+</li>
+<li>作为 <code>printf</code> 的第二个参数，把刚返回的 <code>r0</code> 放到 <code>r1</code> 中
+</li>
+<li><code>printf</code> 的第一个参数是一个 <code>string</code>
+<ul>
+<li><code>string</code> 存储在 <code>data segment</code>
+</li>
+<li>link之前是不知道这个 <code>string</code> 的地址的
+</li>
+<li>前两个指令作用是装载这个敞亮的地址
+</li>
+<li>将 <code>pc</code> 的值加到 <code>r0</code> 中。
+</li>
+</ul>
+
+</li>
+<li>执行 <code>_printf</code>
+<ul>
+<li><code>blx</code> 与 <code>bl</code> 区别在于x(exchage)，处理器会切换模式
+</li>
+<li>ARM有两种模式：ARM(32位)和Thumb（16位)
+</li>
+</ul>
+
+</li>
+<li>pop, <code>lr</code> 的值传递给 <code>pc</code>
+</li>
+</ol>
+
+
+
+
+<pre class="src src-C"><span style="color: #228b22;">mov</span> <span style="color: #a0522d;">r0</span>, <span style="color: #a0522d;">r1</span> =&gt; r0 = r1
+mov r0, #10 =&gt; r0 = 10
+ldr r0, [sp] =&gt; r0 = *sp
+str r0, [sp] =&gt; *sp = r0
+add r0, r1, r2 =&gt; r0 = r1 + r2
+add r0, r1 =&gt; r0 = r0 + r1
+push {r0, r1, r2} =&gt; Push r0, r1 and r2 onto <span style="color: #228b22;">the</span> <span style="color: #a0522d;">stack</span>.
+pop {r0, r1, r2} =&gt; Pop three values off the stack, putting them <span style="color: #228b22;">into</span> <span style="color: #a0522d;">r0</span>, r1 <span style="color: #228b22;">and</span> <span style="color: #a0522d;">r2</span>.
+b _label =&gt; pc = _label
+bl _label =&gt; lr = pc + 4; pc = _label
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-7" class="outline-2">
+<h2 id="sec-7"><span class="section-number-2">7</span> OBJC汇编</h2>
+<div class="outline-text-2" id="text-7">
+
+
+
+
+<pre class="src src-C">- (<span style="color: #228b22;">int</span>)addValue:(<span style="color: #228b22;">int</span>)<span style="color: #228b22;">a</span> <span style="color: #0000ff;">toValue</span>:(<span style="color: #228b22;">int</span>)b {
+    <span style="color: #228b22;">int</span> <span style="color: #a0522d;">c</span> = a + b;
+    <span style="color: #a020f0;">return</span> c;
+}
+</pre>
+
+
+<pre class="src src-C"><span style="color: #8b2252;">"-[ViewController addValue:toValue:]"</span>:
+        adds    r0, r3, r2
+        <span style="color: #228b22;">bx</span>      <span style="color: #a0522d;">lr</span>
+</pre>
+
+<ul>
+<li>参数的寄存器是 <code>r2</code> , <code>r3</code> 而不是 <code>r0</code> , <code>r1</code>
+</li>
+<li>这是由于OBJC调用函数时还包含两个隐式的参数
+</li>
+</ul>
+
+
+
+
+<pre class="src src-C"><span style="color: #228b22;">int</span> <span style="color: #0000ff;">ViewController_addValue_toValue</span>(<span style="color: #228b22;">id</span> <span style="color: #a0522d;">self</span>, <span style="color: #228b22;">SEL</span> <span style="color: #a0522d;">_cmd</span>, <span style="color: #228b22;">int</span> <span style="color: #a0522d;">a</span>, <span style="color: #228b22;">int</span> <span style="color: #a0522d;">b</span>) {
+    <span style="color: #228b22;">int</span> <span style="color: #a0522d;">c</span> = a + b;
+    <span style="color: #a020f0;">return</span> c;
+}
+</pre>
+
+</div>
+</div>
+</div>
+
+<div id="postamble">
+<p class="date">Date: 2013-06-24 16:09:42 CST</p>
+<p class="author">Author: Yifeng Li</p>
+<p class="creator">Org version 7.8.11 with Emacs version 24</p>
+<a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>
+
+</div>
+</body>
+</html>

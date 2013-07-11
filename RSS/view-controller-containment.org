@@ -1,0 +1,7 @@
+View Controller Containment
+原文:http://www.objc.io/issue-1/containment-view-controller.html
+
+* 概论
+=addSubView viewcontroller.view= 会使child view controller排除在整个UIWindow之外，所以类似 =viewWillAppear:= 之类的事件都不会被调用到
+
+http://www.objc.io/images/view-insertion.png

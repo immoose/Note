@@ -1,0 +1,40 @@
+Lighter View Controller
+原文:http://www.objc.io/issue-1/lighter-view-controllers.html
+
+* 分离data source和其他protocols
+#+BEGIN_SRC C
+@implementation ArrayDataSource
+- (id)itemAtIndexPath:(NSIndexPath*)indexPath {
+  return items[(NSUInteger)indexPath.row];
+}
+- (NSInteger)tableView:(UITableView*)tableView
+ numberOfRowsInSection:(NSInteger)section {
+  return items.count;
+}
+
+- (UITableViewCell*)tableView:(UITableView*)tableView
+        cellForRowAtIndexPath:(NSIndexPath*)indexPath {
+  id cell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier
+                                            forIndexPath:indexPath];
+  id item = [self itemAtIndexPath:indexPath];
+  configureCellBlock(cell,item);
+  return cell;
+}
+@end
+
+void (^configureCell)(PhotoCell*, Photo*) = ^(PhotoCell* cell, Photo* photo) {
+  cell.label.text = photo.name;
+};
+photosArrayDataSource = [[ArrayDataSource alloc] initWithItems:photos
+                                                cellIdentifier:PhotoCellIdentifier
+                                            configureCellBlock:configureCell];
+self.tableView.dataSource = photosArrayDataSource;
+#+END_SRC
+
+* 将业务逻辑移动至Model层
+
+* 创建Store类，专注于数据的加载、缓存，以及对数据库进行配置，用作service layer
+
+* web service逻辑移动至Model层
+
+* 将view代码移动至View层

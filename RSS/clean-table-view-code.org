@@ -1,0 +1,42 @@
+Clean table view code
+原文:http://www.objc.io/issue-1/table-views.html
+
+* UITableViewController
+** 优点
++ 第一时间读取tableview的数据
++ 触发tableview的编辑模式，给键盘事件反馈，清除选择等一些小任务
++ 支持UIRefreshControl
+** 限制
++ controller的view只能设置为table view
++ 如果使用storyboard，切换至传统view controller需要比较大的精力
+
+* 分离接口(Model和Cell的桥接）
++ 可以把 =cellForRowAtIndexPath= 分离到一个cell的category
+#+BEGIN_SRC C
+@implementation PhotoCell (ConfigureForPhoto)
+- (void)configureForPhoto:(Photo *)photo
+{
+    self.photoTitleLabel.text = photo.name;
+    NSString* date = [self.dateFormatter stringFromDate:photo.creationDate];
+    self.photoDateLabel.text = date;
+}
+@end
+
+// Data Source
+- (UITableViewCell *)tableView:(UITableView *)tableView
+         cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    PhotoCell *cell = [tableView dequeueReusableCellWithIdentifier:PhotoCellIdentifier];
+    [cell configureForPhoto:[self itemAtIndexPath:indexPath]];
+}
+// 分离的datasource类中可以这么使用
+TableViewCellConfigureBlock block = ^(PhotoCell *cell, Photo *photo) {
+    [cell configureForPhoto:photo];
+};
+#+END_SRC
+
++ 在cell中处理cell的状态
+=tableView:didHighlightRowAtIndexPath= 可以用 =UITableViewCell= 的 =setHighlighted:= 取代
+
++ 处理多种cell type
++ tableview editing 应该触发model层的修改
