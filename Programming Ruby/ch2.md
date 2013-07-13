@@ -8,6 +8,7 @@ song1 = Song.new("Ruby Tuesday")
 
 ## Some basic ruby
 + 函数
+
 ```
 def say_goodnight(name)
   result = "Good night, " + name
@@ -16,23 +17,28 @@ end
 # Time for bed
 puts say_goodnight("Tim")
 ```
+
 + `#{表达式}` 会被替代为表达式的值
-```ruby
+
+```
 def say_goodnight(name)
   result = "Good night, #{name.capitalize}"
   return result
 end
 puts say_goodnight('uncle')    // produce Good night, Uncle
 ```
+
 + **双引号**作用
     + 可转义，例如`\n`
     + 可以执行表达式，例如`#{name.capitalize}`
     + 当表达式仅仅是一个全局实例或者是类变量，可以去掉大括号
-```ruby
+
+```
 $greeting = "Hello"
 @name = "Produce"
 puts "#$greeting, #@name"    // produce Hello, Produce
 ```
+
 + ruby函数的返回值就是最后一个表达式的值，所以可以不用`return`
 ```ruby
 def say_goodnight(name)
