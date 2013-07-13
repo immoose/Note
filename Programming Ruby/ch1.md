@@ -44,6 +44,7 @@ puts "hello world!"
 ## Ruby Documentation: RDoc and ri
 + 如果源代码使用RDoc进行文档注释，它的文档可以被转换成HTML和ri格式。
 + 通过ri查找文档
+
 ```
 % ri GC           // list the summary of GC class
 % ri enable       // find information on a particular method
