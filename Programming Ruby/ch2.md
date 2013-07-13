@@ -1,12 +1,12 @@
 # Chapter 2 Ruby.new
 ## ruby是一个面向对象的语言
 + constructor
-```ruby
+```
 song1 = Song.new("Ruby Tuesday")
 ```
 ## Some basic ruby
 + 函数
-```ruby
+```
 def say_goodnight(name)
   result = "Good night, " + name
   return result
