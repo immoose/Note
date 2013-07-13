@@ -194,6 +194,7 @@ end
 + ruby的access control 是运行期获取的
 + `private`：类和子类都可以在类内部调用，不可以指定调用者，默认为self
 + `protected`：类和子类都能在类内部调用，可以指定调用者。能够被任意该类或者是它的子类的实例调用。
+
 ```
 class MyClass
     def method1    # default is public
