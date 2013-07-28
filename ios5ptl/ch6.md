@@ -28,6 +28,7 @@
 ## View Drawing versus View Layout
 + UIView分离了layout("rearranging") of subviews和drawing("display")，这是因为layout往往比drawing更cheaper
 > _UIView caches drawing onto GPU-optimized bitmaps_
+
 + `setNeedsDisplay`标记UIView为"dirty"，并且在下一个drawing cycle中re-draw
 + 当屏幕方向改变或者scroll的时候，UIView的subviews需要rearrange，UIKit会调用`setNeedsLayout`  
 这会调用`layoutSubviews`。Override `layoutSubviews`会使rotation和scroll变得更流畅，可以只rearrange subviews而不draw them
